@@ -98,27 +98,30 @@ https://artifextsp.github.io/FLL/equipo/mi-calificacion.html
 - Ver puntuación por aspecto
 - Ver total de puntos por rúbrica
 
-### Resultados Generales (Ranking)
+### 📊 Resultados Generales (PÚBLICO - Sin login requerido)
 ```
 https://artifextsp.github.io/FLL/equipo/resultados.html
 ```
+- **Página pública** - No requiere autenticación
 - Ver ranking de todos los equipos
 - Ver total de puntos (suma simple)
 - Ver resultados por evento
 - Comparar con otros equipos
+- Accesible para cualquier persona
 
 ---
 
 ## 📊 RESULTADOS Y RANKINGS
 
-### Resultados Generales (Público)
+### 📊 Resultados Generales (PÚBLICO - Sin login requerido)
 ```
 https://artifextsp.github.io/FLL/equipo/resultados.html
 ```
+- **Página pública** - No requiere autenticación
 - Ranking completo de equipos
 - Total de puntos por equipo
 - Resultados por rúbrica
-- Accesible desde cualquier rol
+- Accesible desde cualquier dispositivo sin login
 
 ---
 

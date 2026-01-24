@@ -37,10 +37,10 @@ https://artifextsp.github.io/FLL/equipo/mi-calificacion.html
 Resultados Generales:
 https://artifextsp.github.io/FLL/equipo/resultados.html
 
-📊 RESULTADOS
-
-Ranking General:
+📊 RESULTADOS GENERALES (PÚBLICO - Sin login)
 https://artifextsp.github.io/FLL/equipo/resultados.html
+
+Esta página es pública, cualquier persona puede ver los resultados sin necesidad de iniciar sesión.
 
 🗑️ ELIMINAR CALIFICACIONES
 (En Dashboard Admin - Botón rojo)
