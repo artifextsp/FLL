@@ -166,17 +166,39 @@
                 console.log('🎯 URL completa construida:', urlCompleta);
                 console.log('🚀 REDIRIGIENDO AHORA...');
                 
-                // CRÍTICO: Forzar redirección de múltiples formas para asegurar que funcione
-                // Método 1: replace (preferido)
-                window.location.replace(urlCompleta);
+                // CRÍTICO: Múltiples métodos de redirección para asegurar que funcione
+                // Método 1: replace inmediato
+                try {
+                    window.location.replace(urlCompleta);
+                } catch (e) {
+                    console.error('Error con replace:', e);
+                }
                 
-                // Método 2: href como fallback inmediato
-                setTimeout(() => {
-                    if (window.location.href !== urlCompleta) {
-                        console.warn('⚠️ Replace no funcionó, intentando href...');
-                        window.location.href = urlCompleta;
+                // Método 2: href como backup inmediato
+                try {
+                    window.location.href = urlCompleta;
+                } catch (e) {
+                    console.error('Error con href:', e);
+                }
+                
+                // Método 3: Si estamos en iframe, usar top.location
+                try {
+                    if (window.top !== window.self) {
+                        window.top.location.href = urlCompleta;
                     }
-                }, 10);
+                } catch (e) {
+                    console.warn('No se puede acceder a top.location (probablemente CORS)');
+                }
+                
+                // Método 4: Fallback con timeout más largo
+                setTimeout(() => {
+                    const currentUrl = window.location.href;
+                    const expectedPath = urlCompleta.split('/').pop();
+                    if (!currentUrl.includes(expectedPath)) {
+                        console.error('⚠️ Redirección falló, forzando con location.assign...');
+                        window.location.assign(urlCompleta);
+                    }
+                }, 100);
                 
                 // NO EJECUTAR MÁS CÓDIGO DESPUÉS DE ESTO
                 return;
