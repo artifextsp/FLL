@@ -1,6 +1,6 @@
 import { querySupabase, insertSupabase, updateSupabase, supabase } from '../supabase.js';
 import { mostrarAlerta } from '../utils.js';
-import { getUser, getLoginUrl } from '../auth.js';
+import { getUser, getLoginUrl, logout } from '../auth.js';
 
 // Estado
 let eventosDisponibles = [];
@@ -28,6 +28,15 @@ document.addEventListener('DOMContentLoaded', async () => {
     if (!user) {
         window.location.href = getLoginUrl();
         return;
+    }
+    
+    // Configurar botón de logout
+    const btnLogout = document.getElementById('btn-logout');
+    if (btnLogout) {
+        btnLogout.addEventListener('click', (e) => {
+            e.preventDefault();
+            logout();
+        });
     }
     
     await cargarDatosIniciales();

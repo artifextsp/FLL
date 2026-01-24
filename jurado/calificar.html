@@ -295,18 +295,6 @@
         </button>
     </div>
 
-    <script type="module">
-        import { getUser, logout, getLoginUrl } from '../js/auth.js';
-        const user = getUser();
-        if (!user) {
-            window.location.href = getLoginUrl();
-        } else {
-        document.getElementById('btn-logout').addEventListener('click', (e) => {
-            e.preventDefault();
-            logout();
-        });
-        }
-    </script>
     <script type="module" src="../js/jurado/calificar.js"></script>
 </body>
 </html>

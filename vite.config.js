@@ -10,6 +10,7 @@ export default defineConfig({
   build: {
     outDir: 'dist',
     assetsDir: 'assets',
+    // Asegurar que las dependencias se empaqueten correctamente
     rollupOptions: {
       input: {
         main: resolve(__dirname, 'index.html'),
@@ -22,8 +23,27 @@ export default defineConfig({
         juradoCalificar: resolve(__dirname, 'jurado/calificar.html'),
         equipoDashboard: resolve(__dirname, 'equipo/dashboard.html'),
         equipoResultados: resolve(__dirname, 'equipo/resultados.html')
+      },
+      output: {
+        // Asegurar que los módulos se empaqueten correctamente
+        format: 'es',
+        entryFileNames: 'assets/[name]-[hash].js',
+        chunkFileNames: 'assets/[name]-[hash].js',
+        assetFileNames: 'assets/[name]-[hash].[ext]'
       }
+    },
+    // Asegurar que las dependencias se incluyan en el bundle
+    commonjsOptions: {
+      include: [/node_modules/]
     }
+  },
+  resolve: {
+    // Asegurar que las dependencias se resuelvan correctamente
+    dedupe: ['@supabase/supabase-js']
+  },
+  optimizeDeps: {
+    // Pre-bundling de dependencias
+    include: ['@supabase/supabase-js']
   },
   server: {
     port: 3000,
