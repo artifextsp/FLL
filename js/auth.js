@@ -100,101 +100,21 @@ export function logout() {
 
 /**
  * Verificar si un usuario tiene múltiples roles disponibles
+ * NOTA: En FLL no tenemos las tablas de Ludens, así que simplificamos esta función
  */
 export async function tieneMultiplesRoles(user) {
   if (!user || !user.id) return false;
   
-  let rolesCount = 1; // Siempre tiene al menos su tipo_usuario
+  // En FLL, los usuarios solo tienen un rol asignado directamente
+  // No necesitamos verificar tablas externas de Ludens
+  // Si en el futuro necesitamos múltiples roles, se manejará aquí
   
-  // Verificar si es acudiente
-  if (user.tipo_usuario !== 'estudiante') {
-    try {
-      const rAcudiente = await fetch(
-        `${CONFIG.API_BASE}/acudientes?usuario_id=eq.${user.id}&activo=eq.true&select=id&limit=1`,
-        {
-          headers: {
-            'apikey': CONFIG.SUPABASE_KEY,
-            'Authorization': `Bearer ${CONFIG.SUPABASE_KEY}`
-          },
-          mode: 'cors',
-          credentials: 'omit'
-        }
-      );
-      
-      if (rAcudiente.ok) {
-        const acudientes = await rAcudiente.json();
-        if (acudientes && acudientes.length > 0) {
-          rolesCount++;
-        }
-      }
-    } catch (error) {
-      Logger.warn('Error al verificar rol de acudiente:', error);
-    }
-  }
-  
-  // Verificar si tiene asignaciones como docente
-  if (user.tipo_usuario !== 'estudiante' && user.tipo_usuario !== 'docente') {
-    try {
-      const rDocenteGrados = await fetch(
-        `${CONFIG.API_BASE}/docente_grados?docente_id=eq.${user.id}&select=id&limit=1`,
-        {
-          headers: {
-            'apikey': CONFIG.SUPABASE_KEY,
-            'Authorization': `Bearer ${CONFIG.SUPABASE_KEY}`
-          },
-          mode: 'cors',
-          credentials: 'omit'
-        }
-      );
-      
-      if (rDocenteGrados.ok) {
-        const docenteGrados = await rDocenteGrados.json();
-        if (docenteGrados && docenteGrados.length > 0) {
-          rolesCount++;
-        }
-      }
-    } catch (error) {
-      Logger.warn('Error al verificar asignaciones docentes:', error);
-    }
-  }
-  
-  // Verificar si es director de grupo
-  if (user.tipo_usuario !== 'estudiante') {
-    try {
-      const rDirector = await fetch(
-        `${CONFIG.API_BASE}/director_grupos?docente_id=eq.${user.id}&activo=eq.true&select=id&limit=1`,
-        {
-          headers: {
-            'apikey': CONFIG.SUPABASE_KEY,
-            'Authorization': `Bearer ${CONFIG.SUPABASE_KEY}`
-          },
-          mode: 'cors',
-          credentials: 'omit'
-        }
-      );
-      
-      if (rDirector.ok) {
-        const directores = await rDirector.json();
-        if (directores && directores.length > 0) {
-          rolesCount++;
-        }
-      }
-    } catch (error) {
-      Logger.warn('Error al verificar rol de director de grupo:', error);
-    }
-  }
-  
-  // Si es super_admin con colegio_id, puede acceder como admin
+  // Por ahora, solo verificamos si es super_admin que puede acceder como admin
   if (user.tipo_usuario === 'super_admin' && user.colegio_id) {
-    rolesCount++;
+    return true;
   }
   
-  // Para admin sin colegio_id, no permitir múltiples roles
-  if (user.tipo_usuario === 'admin' && !user.colegio_id) {
-    return false;
-  }
-  
-  return rolesCount > 1;
+  return false;
 }
 
 /**
