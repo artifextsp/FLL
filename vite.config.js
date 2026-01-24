@@ -1,8 +1,12 @@
 import { defineConfig } from 'vite';
 import { resolve } from 'path';
 
+// Base path para GitHub Pages (cambiar si el repositorio tiene otro nombre)
+const BASE_PATH = process.env.BASE_PATH || '/FLL';
+
 export default defineConfig({
   root: '.',
+  base: BASE_PATH,
   build: {
     outDir: 'dist',
     assetsDir: 'assets',

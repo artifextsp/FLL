@@ -30,6 +30,9 @@ const VALID_ROLES = ['admin', 'jurado', 'estudiante'];
 /**
  * Obtiene el base path de la aplicación
  * Lógica simple y directa sin cache para evitar inconsistencias
+ * 
+ * GitHub Pages: /FLL/ (si el repositorio se llama FLL)
+ * Desarrollo local: '' (root)
  */
 function getBasePath() {
   if (typeof window === 'undefined' || !window.location) return '';
@@ -37,8 +40,28 @@ function getBasePath() {
   const pathname = window.location.pathname.toLowerCase();
   const hostname = window.location.hostname.toLowerCase();
   
-  // Si estamos en Vercel o el pathname contiene /fll, usar /FLL
-  if (hostname.includes('vercel.app') || pathname.startsWith('/fll')) {
+  // Detectar GitHub Pages (github.io)
+  if (hostname.includes('github.io')) {
+    // GitHub Pages siempre usa /nombre-repositorio/ como base
+    // Si el pathname empieza con /fll, usar /FLL
+    if (pathname.startsWith('/fll')) {
+      return '/FLL';
+    }
+    // Si no, extraer el primer segmento del pathname
+    const match = pathname.match(/^\/([^/]+)/);
+    if (match) {
+      return '/' + match[1];
+    }
+    return '/FLL'; // Default para GitHub Pages
+  }
+  
+  // Desarrollo local: no base path
+  if (hostname === 'localhost' || hostname === '127.0.0.1') {
+    return '';
+  }
+  
+  // Si el pathname contiene /fll, usar /FLL (para cualquier otro hosting)
+  if (pathname.startsWith('/fll')) {
     return '/FLL';
   }
   
