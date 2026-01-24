@@ -3,7 +3,7 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>FLL - Resultados en Tiempo Real</title>
+    <title>FLL - Resultados Públicos</title>
     <link rel="stylesheet" href="../css/styles.css">
     <style>
         .evento-card {
@@ -32,8 +32,8 @@
 <body>
     <nav class="nav">
         <div class="container nav-list">
-            <a href="dashboard.html" class="nav-link active">Resultados</a>
-            <a href="#" id="btn-logout" class="nav-link" style="margin-left: auto;">Salir</a>
+            <a href="../index.html" class="nav-link">Inicio</a>
+            <a href="resultados.html" class="nav-link active">Resultados</a>
         </div>
     </nav>
 
@@ -42,7 +42,9 @@
         
         <div class="card mb-md">
             <p class="text-secondary">
-                Selecciona un evento para ver los resultados actualizados de todos los equipos.
+                📊 <strong>Página pública de consulta</strong><br>
+                Selecciona un evento para ver los resultados actualizados de todos los equipos. 
+                No se requiere inicio de sesión para ver los resultados.
             </p>
         </div>
         
@@ -57,18 +59,7 @@
         </div>
     </div>
 
-    <script type="module">
-        import { getUser, logout, getLoginUrl } from '../js/auth.js';
-        const user = getUser();
-        if (!user) {
-            window.location.href = getLoginUrl();
-        } else {
-            document.getElementById('btn-logout').addEventListener('click', (e) => {
-                e.preventDefault();
-                logout();
-            });
-        }
-    </script>
+    <!-- Página pública - sin autenticación requerida -->
     <script type="module" src="../js/equipo/resultados.js"></script>
 </body>
 </html>

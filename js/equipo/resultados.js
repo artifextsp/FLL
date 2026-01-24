@@ -1,19 +1,12 @@
 import { querySupabase, supabase } from '../supabase.js';
 import { calcularPromedio, redondear, formatearFecha } from '../utils.js';
-import { getUser, getLoginUrl } from '../auth.js';
 
 // Estado
 let eventos = [];
 let resultados = {}; // { evento_id: { equipos: [], rubricas: [] } }
 
-// Inicialización
+// Inicialización - PÁGINA PÚBLICA (sin autenticación requerida)
 document.addEventListener('DOMContentLoaded', async () => {
-    const user = getUser();
-    if (!user) {
-        window.location.href = getLoginUrl();
-        return;
-    }
-    
     await cargarEventos();
     configurarEventListeners();
 });
