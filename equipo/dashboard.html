@@ -1,0 +1,41 @@
+<!DOCTYPE html>
+<html lang="es">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>FLL - Equipo Dashboard</title>
+    <link rel="stylesheet" href="../css/styles.css">
+</head>
+<body>
+    <nav class="nav">
+        <div class="container nav-list">
+            <a href="#" class="nav-link active">Resultados</a>
+            <a href="#" id="btn-logout" class="nav-link" style="margin-left: auto;">Salir</a>
+        </div>
+    </nav>
+
+    <div class="container">
+        <h1 class="mb-lg">Panel de Equipo</h1>
+        
+        <div class="card">
+            <h3>Resultados</h3>
+            <p>No hay resultados disponibles todavía.</p>
+        </div>
+    </div>
+
+    <script type="module">
+        import { requireAuth, logout } from '../js/auth.js';
+        
+        // Verificar autenticación
+        // Los equipos usan rol 'estudiante' en el sistema Ludens
+        const user = requireAuth('estudiante');
+        
+        if (user) {
+            document.getElementById('btn-logout').addEventListener('click', (e) => {
+                e.preventDefault();
+                logout();
+            });
+        }
+    </script>
+</body>
+</html>

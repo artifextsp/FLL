@@ -1,0 +1,77 @@
+<!DOCTYPE html>
+<html lang="es">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>FLL - Inicio de Sesión</title>
+    <link rel="stylesheet" href="./css/styles.css">
+</head>
+<body>
+    <div class="container" style="max-width: 400px; margin-top: 10vh;">
+        <div class="card text-center">
+            <h1 class="mb-lg" style="color: var(--primary-color);">FLL Calificación</h1>
+            <p class="mb-lg text-secondary">Sistema de gestión y calificación de equipos</p>
+            
+            <div id="login-form">
+                <!-- El login real se integrará con el sistema de Ludens -->
+                <!-- Por ahora simulamos el login para desarrollo -->
+                <div class="form-group text-left">
+                    <label class="form-label">Usuario</label>
+                    <input type="text" id="username" class="form-input" placeholder="Usuario">
+                </div>
+                
+                <div class="form-group text-left">
+                    <label class="form-label">Contraseña</label>
+                    <input type="password" id="password" class="form-input" placeholder="Contraseña">
+                </div>
+                
+                <button id="btn-login" class="btn btn-primary" style="width: 100%;">Iniciar Sesión</button>
+                
+                <div id="error-msg" class="alerta alerta-error mt-md hidden"></div>
+            </div>
+            
+            <p class="mt-lg text-secondary font-size-sm">
+                Versión Beta 0.1.0
+            </p>
+        </div>
+    </div>
+
+    <script type="module">
+        import { setUser, redirigirPorTipoUsuario } from './js/auth.js';
+        
+        // Simulación de login para desarrollo (hasta integrar con Ludens real)
+        document.getElementById('btn-login').addEventListener('click', () => {
+            const username = document.getElementById('username').value;
+            
+            if (!username) {
+                mostrarError('Por favor ingresa un usuario');
+                return;
+            }
+            
+            // Simular usuario según el input (para pruebas)
+            let rol = 'jurado';
+            if (username.includes('admin')) rol = 'admin';
+            if (username.includes('equipo')) rol = 'estudiante'; // equipo usa rol estudiante
+            
+            const fakeUser = {
+                id: '123456',
+                username: username,
+                tipo_usuario: rol,
+                rol_activo: rol,
+                nombre: username,
+                colegio_id: 1 // Necesario para admin
+            };
+            
+            setUser(fakeUser);
+            redirigirPorTipoUsuario();
+        });
+
+        function mostrarError(msg) {
+            const el = document.getElementById('error-msg');
+            el.textContent = msg;
+            el.classList.remove('hidden');
+            setTimeout(() => el.classList.add('hidden'), 3000);
+        }
+    </script>
+</body>
+</html>

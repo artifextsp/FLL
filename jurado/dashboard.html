@@ -1,0 +1,42 @@
+<!DOCTYPE html>
+<html lang="es">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>FLL - Jurado Dashboard</title>
+    <link rel="stylesheet" href="../css/styles.css">
+</head>
+<body>
+    <nav class="nav">
+        <div class="container nav-list">
+            <a href="#" class="nav-link active">Dashboard</a>
+            <a href="#" class="nav-link">Calificar</a>
+            <a href="#" id="btn-logout" class="nav-link" style="margin-left: auto;">Salir</a>
+        </div>
+    </nav>
+
+    <div class="container">
+        <h1 class="mb-lg">Panel de Jurado</h1>
+        
+        <div class="card">
+            <p>Bienvenido. Selecciona un evento para comenzar a calificar.</p>
+            <button class="btn btn-primary mt-md">Ver Eventos Disponibles</button>
+        </div>
+    </div>
+
+    <script type="module">
+        import { requireAuth, logout } from '../js/auth.js';
+        
+        // Verificar autenticación (puede ser jurado o docente)
+        // requireAuth verifica rol exacto, así que validamos manualmente
+        import { getUser } from '../js/auth.js';
+        const user = getUser();
+        if (!user) window.location.href = '../index.html';
+        
+        document.getElementById('btn-logout').addEventListener('click', (e) => {
+            e.preventDefault();
+            logout();
+        });
+    </script>
+</body>
+</html>
