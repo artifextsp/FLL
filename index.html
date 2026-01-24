@@ -159,24 +159,27 @@
                         destino = base + '/index.html';
                 }
                 
-                console.log('🎯 URL de destino construida:', destino);
-                console.log('🚀 REDIRIGIENDO INMEDIATAMENTE...');
+                // Construir URL absoluta completa
+                const urlCompleta = destino.startsWith('http') ? destino : 
+                    window.location.origin + destino;
                 
-                // Forzar navegación inmediata - múltiples métodos para asegurar que funcione
-                try {
-                    window.location.href = destino;
-                } catch (e) {
-                    console.error('Error con href, intentando replace:', e);
-                    window.location.replace(destino);
-                }
+                console.log('🎯 URL completa construida:', urlCompleta);
+                console.log('🚀 REDIRIGIENDO AHORA...');
                 
-                // Fallback adicional después de un breve delay
+                // CRÍTICO: Forzar redirección de múltiples formas para asegurar que funcione
+                // Método 1: replace (preferido)
+                window.location.replace(urlCompleta);
+                
+                // Método 2: href como fallback inmediato
                 setTimeout(() => {
-                    if (window.location.href.indexOf(destino.split('/').pop()) === -1) {
-                        console.warn('⚠️ Redirección no completada, forzando...');
-                        window.location.replace(destino);
+                    if (window.location.href !== urlCompleta) {
+                        console.warn('⚠️ Replace no funcionó, intentando href...');
+                        window.location.href = urlCompleta;
                     }
-                }, 500);
+                }, 10);
+                
+                // NO EJECUTAR MÁS CÓDIGO DESPUÉS DE ESTO
+                return;
                 
             } catch (e) {
                 console.error('❌ Error en login:', e);

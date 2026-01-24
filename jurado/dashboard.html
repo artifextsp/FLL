@@ -49,7 +49,8 @@
         // Esperar un momento para asegurar que localStorage esté sincronizado
         (async () => {
             console.log('⏳ jurado/dashboard - Esperando sincronización de localStorage...');
-            await new Promise(resolve => setTimeout(resolve, 100));
+            // Reducir el delay para evitar que redirija de vuelta si el usuario está cargando
+            await new Promise(resolve => setTimeout(resolve, 200));
             
             const user = getUser();
             console.log('🔍 jurado/dashboard - Usuario obtenido:', user);
