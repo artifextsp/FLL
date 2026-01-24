@@ -200,19 +200,29 @@ function agregarFilaNivel(nivel) {
     const div = document.createElement('div');
     div.className = 'nivel-fila';
     div.dataset.nivel = nivel.nivel;
+    
+    // Etiquetas de nivel más cortas
+    const etiquetas = {
+        1: 'Básico',
+        2: 'En Desarrollo',
+        3: 'Cumplido',
+        4: 'Superado'
+    };
+    
     div.innerHTML = `
-        <div class="grid grid-4" style="gap: 8px; align-items: end;">
+        <div style="display: grid; grid-template-columns: 80px 1fr 70px; gap: 8px; align-items: start;">
             <div>
-                <label class="form-label">Nivel</label>
-                <input type="number" class="form-input nivel-numero" value="${nivel.nivel}" min="1" max="4" readonly>
-            </div>
-            <div style="grid-column: span 2;">
-                <label class="form-label">Descripción</label>
-                <input type="text" class="form-input nivel-descripcion" value="${nivel.descripcion || ''}" placeholder="Ej: Definición del problema no clara">
+                <label class="form-label" style="font-size: 0.85rem; margin-bottom: 4px;">Nivel ${nivel.nivel}</label>
+                <div style="font-size: 0.75rem; color: var(--text-secondary); margin-top: 2px;">${etiquetas[nivel.nivel] || ''}</div>
+                <input type="number" class="form-input nivel-numero" value="${nivel.nivel}" min="1" max="4" readonly style="display: none;">
             </div>
             <div>
-                <label class="form-label">Puntos</label>
-                <input type="number" class="form-input nivel-puntuacion" value="${nivel.puntuacion || nivel.nivel}" min="0">
+                <label class="form-label" style="font-size: 0.85rem; margin-bottom: 4px;">Descripción *</label>
+                <input type="text" class="form-input nivel-descripcion" value="${nivel.descripcion || ''}" placeholder="Ej: Definición del problema no clara" style="font-size: 0.9rem; padding: 8px;">
+            </div>
+            <div>
+                <label class="form-label" style="font-size: 0.85rem; margin-bottom: 4px;">Puntos</label>
+                <input type="number" class="form-input nivel-puntuacion" value="${nivel.puntuacion || nivel.nivel}" min="0" style="font-size: 0.9rem; padding: 8px;">
             </div>
         </div>
     `;
