@@ -567,27 +567,30 @@ async function guardarCalificacion() {
                 observacion_general: observacionGeneral
             };
             
-            // Asegurar que los UUIDs sean strings
+            // Preparar datos asegurando tipos correctos
             const datosLimpios = {
                 jurado_id: String(jurado.id),
                 equipo_id: String(equipoSeleccionado),
                 rubrica_id: String(rubricaSeleccionada),
                 aspecto_id: String(cal.aspecto_id),
                 puntuacion: parseInt(nivel.puntuacion) || 0,
-                nivel_seleccionado: parseInt(cal.nivel) || null,
-                observacion_aspecto: cal.observacion || null,
-                observacion_general: observacionGeneral || null
+                nivel_seleccionado: parseInt(cal.nivel) || null
             };
             
-            // Solo incluir observacion_general si no está vacía y es la primera calificación
-            if (!observacionGeneral || observacionGeneral.trim() === '') {
-                delete datosLimpios.observacion_general;
+            // Agregar observaciones solo si tienen contenido
+            if (cal.observacion && cal.observacion.trim() !== '') {
+                datosLimpios.observacion_aspecto = cal.observacion.trim();
             }
             
-            console.log('Guardando calificación:', datosLimpios);
+            // Solo agregar observacion_general si tiene contenido (opcional)
+            if (observacionGeneral && observacionGeneral.trim() !== '') {
+                datosLimpios.observacion_general = observacionGeneral.trim();
+            }
+            
+            console.log('📝 Guardando calificación:', JSON.stringify(datosLimpios, null, 2));
             
             if (existente) {
-                // Actualizar
+                // Actualizar registro existente
                 const { data: updated, error: updateError } = await supabase
                     .from('calificaciones')
                     .update(datosLimpios)
@@ -595,21 +598,28 @@ async function guardarCalificacion() {
                     .select();
                 
                 if (updateError) {
-                    console.error('Error al actualizar:', updateError);
+                    console.error('❌ Error al actualizar:', updateError);
+                    console.error('Datos enviados:', JSON.stringify(datosLimpios, null, 2));
                     throw updateError;
                 }
+                console.log('✅ Calificación actualizada:', updated);
             } else {
-                // Crear
+                // Crear nuevo registro
                 const { data: inserted, error: insertError } = await supabase
                     .from('calificaciones')
-                    .insert(datosLimpios)
+                    .insert([datosLimpios]) // Envolver en array para insert
                     .select();
                 
                 if (insertError) {
-                    console.error('Error al insertar:', insertError);
-                    console.error('Datos que se intentaron insertar:', datosLimpios);
+                    console.error('❌ Error al insertar:', insertError);
+                    console.error('Código de error:', insertError.code);
+                    console.error('Mensaje:', insertError.message);
+                    console.error('Detalles:', insertError.details);
+                    console.error('Hint:', insertError.hint);
+                    console.error('Datos enviados:', JSON.stringify(datosLimpios, null, 2));
                     throw insertError;
                 }
+                console.log('✅ Calificación insertada:', inserted);
             }
         }
         
