@@ -15,7 +15,9 @@ export default defineConfig({
         adminJurados: resolve(__dirname, 'admin/jurados.html'),
         adminRubricas: resolve(__dirname, 'admin/rubricas.html'),
         juradoDashboard: resolve(__dirname, 'jurado/dashboard.html'),
-        equipoDashboard: resolve(__dirname, 'equipo/dashboard.html')
+        juradoCalificar: resolve(__dirname, 'jurado/calificar.html'),
+        equipoDashboard: resolve(__dirname, 'equipo/dashboard.html'),
+        equipoResultados: resolve(__dirname, 'equipo/resultados.html')
       }
     }
   },

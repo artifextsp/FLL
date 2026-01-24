@@ -1,0 +1,75 @@
+<!DOCTYPE html>
+<html lang="es">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>FLL - Resultados en Tiempo Real</title>
+    <link rel="stylesheet" href="../css/styles.css">
+    <style>
+        .evento-card {
+            transition: transform 0.2s, box-shadow 0.2s;
+        }
+        .evento-card:active {
+            transform: scale(0.98);
+        }
+        .ranking-badge {
+            display: inline-block;
+            width: 40px;
+            height: 40px;
+            border-radius: 50%;
+            background: var(--primary-color);
+            color: white;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            font-weight: bold;
+        }
+        .ranking-badge.oro { background: #FFD700; }
+        .ranking-badge.plata { background: #C0C0C0; }
+        .ranking-badge.bronce { background: #CD7F32; }
+    </style>
+</head>
+<body>
+    <nav class="nav">
+        <div class="container nav-list">
+            <a href="dashboard.html" class="nav-link active">Resultados</a>
+            <a href="#" id="btn-logout" class="nav-link" style="margin-left: auto;">Salir</a>
+        </div>
+    </nav>
+
+    <div class="container">
+        <h1 style="margin-bottom: 20px;">📊 Resultados en Tiempo Real</h1>
+        
+        <div class="card mb-md">
+            <p class="text-secondary">
+                Selecciona un evento para ver los resultados actualizados de todos los equipos.
+            </p>
+        </div>
+        
+        <div id="eventos-container">
+            <!-- Se llena dinámicamente -->
+        </div>
+        
+        <div id="resultados-section" style="margin-top: 32px;">
+            <div id="resultados-container">
+                <!-- Se llena dinámicamente cuando se selecciona un evento -->
+            </div>
+        </div>
+    </div>
+
+    <script type="module">
+        import { getUser, logout } from '../js/auth.js';
+        
+        const user = getUser();
+        if (!user) {
+            window.location.href = '../index.html';
+        }
+        
+        document.getElementById('btn-logout').addEventListener('click', (e) => {
+            e.preventDefault();
+            logout();
+        });
+    </script>
+    <script type="module" src="../js/equipo/resultados.js"></script>
+</body>
+</html>
