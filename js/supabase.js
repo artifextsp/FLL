@@ -5,11 +5,21 @@
 import { createClient } from '@supabase/supabase-js';
 import { CONFIG, Logger } from './config.js';
 
+// Validar configuración antes de crear el cliente
+if (!CONFIG.SUPABASE_URL || !CONFIG.SUPABASE_KEY) {
+  Logger.error('❌ ERROR CRÍTICO: Configuración de Supabase incompleta');
+  Logger.error('- SUPABASE_URL:', CONFIG.SUPABASE_URL || 'NO DEFINIDA');
+  Logger.error('- SUPABASE_KEY:', CONFIG.SUPABASE_KEY ? 'DEFINIDA' : 'NO DEFINIDA');
+  throw new Error('Configuración de Supabase incompleta. Verifica las variables de entorno.');
+}
+
 // Crear cliente de Supabase
 export const supabase = createClient(
   CONFIG.SUPABASE_URL,
   CONFIG.SUPABASE_KEY
 );
+
+Logger.log('✅ Cliente Supabase inicializado correctamente');
 
 /**
  * Ejecutar consulta a Supabase

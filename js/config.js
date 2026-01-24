@@ -12,11 +12,12 @@ const SUPABASE_KEY_FALLBACK = 'eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpc3MiOiJz
 const API_BASE_FALLBACK = 'https://tvqugpqsmulwfqwwgkgp.supabase.co/rest/v1';
 
 // Configuración final: usar variables de entorno si están disponibles, sino usar fallback
+// Vite reemplaza import.meta.env.* durante el build, si no están disponibles quedan como undefined
 const CONFIG = {
-  API_BASE: import.meta.env.VITE_API_BASE || API_BASE_FALLBACK,
-  SUPABASE_URL: import.meta.env.VITE_SUPABASE_URL || SUPABASE_URL_FALLBACK,
-  SUPABASE_KEY: import.meta.env.VITE_SUPABASE_ANON_KEY || SUPABASE_KEY_FALLBACK,
-  APP_NAME: import.meta.env.VITE_APP_NAME || 'Sistema de Calificación FLL'
+  API_BASE: (import.meta.env.VITE_API_BASE && import.meta.env.VITE_API_BASE.trim()) || API_BASE_FALLBACK,
+  SUPABASE_URL: (import.meta.env.VITE_SUPABASE_URL && import.meta.env.VITE_SUPABASE_URL.trim()) || SUPABASE_URL_FALLBACK,
+  SUPABASE_KEY: (import.meta.env.VITE_SUPABASE_ANON_KEY && import.meta.env.VITE_SUPABASE_ANON_KEY.trim()) || SUPABASE_KEY_FALLBACK,
+  APP_NAME: (import.meta.env.VITE_APP_NAME && import.meta.env.VITE_APP_NAME.trim()) || 'Sistema de Calificación FLL'
 };
 
 // Logger simple para desarrollo
@@ -29,12 +30,16 @@ const Logger = {
 
 // Diagnóstico de configuración (solo para debug)
 console.log('🔍 Diagnóstico de Configuración:');
-console.log('- URL Supabase definida:', !!CONFIG.SUPABASE_URL);
-console.log('- Anon Key definida:', !!CONFIG.SUPABASE_KEY);
-console.log('- API Base definida:', !!CONFIG.API_BASE, '(opcional; el login no la usa)');
+console.log('- URL Supabase:', CONFIG.SUPABASE_URL ? CONFIG.SUPABASE_URL.substring(0, 30) + '...' : 'NO DEFINIDA');
+console.log('- Anon Key:', CONFIG.SUPABASE_KEY ? 'DEFINIDA (' + CONFIG.SUPABASE_KEY.substring(0, 20) + '...)' : 'NO DEFINIDA');
+console.log('- API Base:', CONFIG.API_BASE || 'NO DEFINIDA', '(opcional)');
 
 if (!CONFIG.SUPABASE_URL || !CONFIG.SUPABASE_KEY) {
   console.error('❌ ERROR CRÍTICO: Configuración de Supabase incompleta');
+  console.error('- SUPABASE_URL:', CONFIG.SUPABASE_URL || 'NO DEFINIDA');
+  console.error('- SUPABASE_KEY:', CONFIG.SUPABASE_KEY ? 'DEFINIDA' : 'NO DEFINIDA');
+} else {
+  console.log('✅ Configuración de Supabase completa');
 }
 
 export { CONFIG, Logger };
