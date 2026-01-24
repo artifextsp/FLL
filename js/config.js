@@ -17,4 +17,14 @@ const Logger = {
   info: (...args) => console.info('[INFO]', ...args)
 };
 
+// Diagnóstico de configuración (solo para debug)
+console.log('🔍 Diagnóstico de Configuración:');
+console.log('- URL Supabase definida:', !!CONFIG.SUPABASE_URL);
+console.log('- Anon Key definida:', !!CONFIG.SUPABASE_KEY);
+console.log('- API Base definida:', !!CONFIG.API_BASE);
+
+if (!CONFIG.SUPABASE_URL) {
+  console.error('❌ ERROR CRÍTICO: VITE_SUPABASE_URL no está definida. Verifica las variables de entorno en Vercel.');
+}
+
 export { CONFIG, Logger };
