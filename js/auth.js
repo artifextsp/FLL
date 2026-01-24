@@ -8,11 +8,14 @@ import { CONFIG, Logger } from './config.js';
 /** Base path de la app (ej. /FLL en Vercel, '' en dev). Una sola fuente de verdad. */
 function getBasePath() {
   try {
-    const p = (typeof location !== 'undefined' && location.pathname) || '';
-    if (p.startsWith('/FLL')) return '/FLL';
+    const host = (typeof location !== 'undefined' && location.hostname) || '';
+    const p = ((typeof location !== 'undefined' && location.pathname) || '').toLowerCase();
+    if (p.startsWith('/fll')) return '/FLL';
+    if (host.includes('vercel.app')) return '/FLL';
     if (p === '/' || p === '/index.html' || !p) return '';
-    const m = p.match(/^\/[^/]+/);
-    return m ? m[0] : '';
+    const first = (p.match(/^\/([^/]+)/) || [])[1];
+    if (first === 'admin' || first === 'jurado' || first === 'equipo') return '';
+    return first ? '/' + first : '';
   } catch {
     return '';
   }
@@ -143,7 +146,7 @@ export async function redirigirPorTipoUsuario() {
   }
 
   const base = getBasePath();
-  const b = base ? base + '/' : '';
+  const b = base ? base + '/' : '/';
   console.log('🔍 Base path:', base, '→ URL base:', b);
   
   let destino = '';
