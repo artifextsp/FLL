@@ -511,9 +511,6 @@ function limpiarControlesCalificacion() {
         observacionGeneral.value = '';
     }
     
-    // Limpiar estado interno
-    calificacionesActuales = {};
-    
     // Remover clases 'selected' de los niveles
     document.querySelectorAll('.nivel-option.selected').forEach(element => {
         element.classList.remove('selected');
@@ -663,16 +660,29 @@ async function guardarCalificacion() {
         // Mostrar diálogo de confirmación más visible
         mostrarAlerta('✅ Calificaciones guardadas correctamente', 'success', 5000);
         
+        // Limpiar estado interno ANTES de limpiar controles
+        calificacionesActuales = {};
+        
         // Limpiar todos los controles de la interfaz
         limpiarControlesCalificacion();
         
-        // Recargar calificaciones para mostrar estado actualizado
-        await cargarCalificacionesExistentes();
+        // Volver a renderizar los aspectos sin las calificaciones guardadas
+        renderizarAspectos();
         
-        // Scroll al inicio de la sección de calificación para mejor UX
-        if (seccionCalificacion) {
-            seccionCalificacion.scrollIntoView({ behavior: 'smooth', block: 'start' });
-        }
+        // Hacer scroll al primer control (primer aspecto)
+        setTimeout(() => {
+            const primerAspecto = listaAspectos.querySelector('.aspecto-card');
+            if (primerAspecto) {
+                primerAspecto.scrollIntoView({ behavior: 'smooth', block: 'start' });
+                // Enfocar el primer radio button
+                const primerRadio = primerAspecto.querySelector('input[type="radio"]');
+                if (primerRadio) {
+                    primerRadio.focus();
+                }
+            } else if (seccionCalificacion) {
+                seccionCalificacion.scrollIntoView({ behavior: 'smooth', block: 'start' });
+            }
+        }, 100);
         
     } catch (error) {
         console.error('❌ Error guardando calificación:', error);
