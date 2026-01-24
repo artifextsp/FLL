@@ -12,12 +12,22 @@ const SUPABASE_KEY_FALLBACK = 'eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpc3MiOiJz
 const API_BASE_FALLBACK = 'https://tvqugpqsmulwfqwwgkgp.supabase.co/rest/v1';
 
 // Configuración final: usar variables de entorno si están disponibles, sino usar fallback
-// Vite reemplaza import.meta.env.* durante el build, si no están disponibles quedan como undefined
+// Vite reemplaza import.meta.env.* durante el build, si no están disponibles quedan como undefined o ""
+// Usamos una función helper para asegurar que siempre tengamos un valor válido
+function getEnvVar(envVar, fallback) {
+  const value = import.meta.env[envVar];
+  // Si es undefined, null, o string vacío, usar fallback
+  if (!value || (typeof value === 'string' && value.trim() === '')) {
+    return fallback;
+  }
+  return typeof value === 'string' ? value.trim() : value;
+}
+
 const CONFIG = {
-  API_BASE: (import.meta.env.VITE_API_BASE && import.meta.env.VITE_API_BASE.trim()) || API_BASE_FALLBACK,
-  SUPABASE_URL: (import.meta.env.VITE_SUPABASE_URL && import.meta.env.VITE_SUPABASE_URL.trim()) || SUPABASE_URL_FALLBACK,
-  SUPABASE_KEY: (import.meta.env.VITE_SUPABASE_ANON_KEY && import.meta.env.VITE_SUPABASE_ANON_KEY.trim()) || SUPABASE_KEY_FALLBACK,
-  APP_NAME: (import.meta.env.VITE_APP_NAME && import.meta.env.VITE_APP_NAME.trim()) || 'Sistema de Calificación FLL'
+  API_BASE: getEnvVar('VITE_API_BASE', API_BASE_FALLBACK),
+  SUPABASE_URL: getEnvVar('VITE_SUPABASE_URL', SUPABASE_URL_FALLBACK),
+  SUPABASE_KEY: getEnvVar('VITE_SUPABASE_ANON_KEY', SUPABASE_KEY_FALLBACK),
+  APP_NAME: getEnvVar('VITE_APP_NAME', 'Sistema de Calificación FLL')
 };
 
 // Logger simple para desarrollo

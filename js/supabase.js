@@ -10,7 +10,8 @@ if (!CONFIG.SUPABASE_URL || !CONFIG.SUPABASE_KEY) {
   Logger.error('❌ ERROR CRÍTICO: Configuración de Supabase incompleta');
   Logger.error('- SUPABASE_URL:', CONFIG.SUPABASE_URL || 'NO DEFINIDA');
   Logger.error('- SUPABASE_KEY:', CONFIG.SUPABASE_KEY ? 'DEFINIDA' : 'NO DEFINIDA');
-  throw new Error('Configuración de Supabase incompleta. Verifica las variables de entorno.');
+  Logger.error('⚠️ Esto no debería ocurrir. Los fallbacks deberían estar activos.');
+  throw new Error('Configuración de Supabase incompleta. Los valores de fallback no se están aplicando correctamente.');
 }
 
 // Crear cliente de Supabase
