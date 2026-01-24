@@ -491,6 +491,37 @@ function limpiarSelecciones() {
     ocultarSeccionCalificacion();
 }
 
+/**
+ * Limpiar todos los controles de calificación
+ */
+function limpiarControlesCalificacion() {
+    // Limpiar todos los radio buttons seleccionados
+    document.querySelectorAll('input[type="radio"]:checked').forEach(radio => {
+        radio.checked = false;
+    });
+    
+    // Limpiar todos los textareas de observaciones
+    document.querySelectorAll('textarea[data-aspecto]').forEach(textarea => {
+        textarea.value = '';
+    });
+    
+    // Limpiar observación general
+    const observacionGeneral = document.getElementById('observacion-general');
+    if (observacionGeneral) {
+        observacionGeneral.value = '';
+    }
+    
+    // Limpiar estado interno
+    calificacionesActuales = {};
+    
+    // Remover clases 'selected' de los niveles
+    document.querySelectorAll('.nivel-option.selected').forEach(element => {
+        element.classList.remove('selected');
+    });
+    
+    console.log('✅ Controles de calificación limpiados');
+}
+
 async function guardarCalificacion() {
     if (!equipoSeleccionado || !rubricaSeleccionada || !eventoSeleccionado) {
         mostrarAlerta('Por favor completa todas las selecciones', 'warning');
@@ -629,10 +660,19 @@ async function guardarCalificacion() {
             }
         }
         
-        mostrarAlerta('Calificación guardada correctamente', 'success');
+        // Mostrar diálogo de confirmación más visible
+        mostrarAlerta('✅ Calificaciones guardadas correctamente', 'success', 5000);
+        
+        // Limpiar todos los controles de la interfaz
+        limpiarControlesCalificacion();
         
         // Recargar calificaciones para mostrar estado actualizado
         await cargarCalificacionesExistentes();
+        
+        // Scroll al inicio de la sección de calificación para mejor UX
+        if (seccionCalificacion) {
+            seccionCalificacion.scrollIntoView({ behavior: 'smooth', block: 'start' });
+        }
         
     } catch (error) {
         console.error('❌ Error guardando calificación:', error);
