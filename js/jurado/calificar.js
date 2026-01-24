@@ -1,6 +1,6 @@
 import { querySupabase, insertSupabase, updateSupabase, supabase } from '../supabase.js';
 import { mostrarAlerta } from '../utils.js';
-import { getUser } from '../auth.js';
+import { getUser, getLoginUrl } from '../auth.js';
 
 // Estado
 let eventosDisponibles = [];
@@ -26,7 +26,7 @@ const btnGuardar = document.getElementById('btn-guardar-calificacion');
 document.addEventListener('DOMContentLoaded', async () => {
     const user = getUser();
     if (!user) {
-        window.location.href = '../index.html';
+        window.location.href = getLoginUrl();
         return;
     }
     

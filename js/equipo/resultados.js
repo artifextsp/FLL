@@ -1,6 +1,6 @@
 import { querySupabase, supabase } from '../supabase.js';
 import { calcularPromedio, redondear, formatearFecha } from '../utils.js';
-import { getUser } from '../auth.js';
+import { getUser, getLoginUrl } from '../auth.js';
 
 // Estado
 let eventos = [];
@@ -10,7 +10,7 @@ let resultados = {}; // { evento_id: { equipos: [], rubricas: [] } }
 document.addEventListener('DOMContentLoaded', async () => {
     const user = getUser();
     if (!user) {
-        window.location.href = '../index.html';
+        window.location.href = getLoginUrl();
         return;
     }
     

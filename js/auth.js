@@ -5,6 +5,25 @@
 
 import { CONFIG, Logger } from './config.js';
 
+/** Base path de la app (ej. /FLL en Vercel, '' en dev). Una sola fuente de verdad. */
+function getBasePath() {
+  try {
+    const p = (typeof location !== 'undefined' && location.pathname) || '';
+    if (p.startsWith('/FLL')) return '/FLL';
+    if (p === '/' || p === '/index.html' || !p) return '';
+    const m = p.match(/^\/[^/]+/);
+    return m ? m[0] : '';
+  } catch {
+    return '';
+  }
+}
+
+/** URL absoluta al login. Usar en todos los redirects a login (admin, jurado, etc.). */
+export function getLoginUrl() {
+  const base = getBasePath();
+  return (base || '') + '/index.html';
+}
+
 /**
  * Obtener usuario de la sesión actual
  */
@@ -37,44 +56,19 @@ export function setUser(userData) {
  */
 export function requireAuth(tipoRequerido = null) {
   const user = getUser();
-  
-  Logger.log('🔒 requireAuth - tipoRequerido:', tipoRequerido);
-  Logger.log('🔒 requireAuth - user:', user);
-  
   if (!user || !user.id) {
-    Logger.warn('❌ requireAuth - No hay usuario autenticado');
-    window.location.href = 'index.html';
+    window.location.href = getLoginUrl();
     return null;
   }
   
-  // Usar rol activo si está disponible, sino usar tipo_usuario
   const tipoActivo = user.rol_activo || user.tipo_usuario;
-  Logger.log('🔒 requireAuth - tipoActivo:', tipoActivo);
-  
   if (tipoRequerido && tipoActivo !== tipoRequerido) {
-    // Si el usuario tiene múltiples roles, verificar si puede cambiar de rol
-    if (user.tipo_usuario === 'admin' && tipoRequerido === 'docente') {
-      // Verificar si tiene asignaciones como docente
-      // Por ahora, permitir acceso si es admin (tiene acceso total)
-      Logger.log('✅ requireAuth - Admin accediendo como docente (permitido)');
-      return user;
-    }
-    
-    // Super admin tiene acceso a todo, incluyendo funciones de admin
-    if (user.tipo_usuario === 'super_admin' && tipoRequerido === 'admin') {
-      Logger.log('✅ requireAuth - Super admin accediendo como admin (permitido)');
-      return user; // Super admin puede acceder a funciones de admin
-    }
-    
-    Logger.warn(`❌ requireAuth - Permisos insuficientes. Requerido: ${tipoRequerido}, Actual: ${tipoActivo}`);
-    mostrarAlerta(`No tienes permisos para acceder a esta página. Requerido: ${tipoRequerido}, Tu rol: ${tipoActivo}`, 'error');
-    setTimeout(() => {
-      window.location.href = 'index.html';
-    }, 2000);
+    if (user.tipo_usuario === 'admin' && tipoRequerido === 'docente') return user;
+    if (user.tipo_usuario === 'super_admin' && tipoRequerido === 'admin') return user;
+    mostrarAlerta(`No tienes permisos. Requerido: ${tipoRequerido}, tu rol: ${tipoActivo}`, 'error');
+    setTimeout(() => { window.location.href = getLoginUrl(); }, 1500);
     return null;
   }
-  
-  Logger.log('✅ requireAuth - Acceso permitido');
   return user;
 }
 
@@ -83,47 +77,12 @@ export function requireAuth(tipoRequerido = null) {
  */
 export function logout() {
   try {
-    Logger.log('🚪 Cerrando sesión...');
-    
-    // Limpiar datos de usuario
     localStorage.removeItem('pcre_user');
-    
-    // Limpiar cualquier otro dato relacionado con la sesión
-    try {
-      const keys = Object.keys(localStorage);
-      let limpiados = 0;
-      keys.forEach(key => {
-        if (key.startsWith('pcre_')) {
-          localStorage.removeItem(key);
-          limpiados++;
-        }
-      });
-      Logger.log(`🧹 Limpiados ${limpiados} elementos de localStorage`);
-    } catch (cleanError) {
-      Logger.warn('Error al limpiar datos adicionales:', cleanError);
-    }
-    
-    // Verificar que se limpió
-    const userRestante = getUser();
-    if (userRestante) {
-      Logger.warn('⚠️ Aún hay datos de usuario después de logout, forzando limpieza');
-      localStorage.clear(); // Último recurso
-    }
-    
-    Logger.log('✅ Sesión cerrada correctamente');
-    
-    // Redirigir a la página de login
-    window.location.replace('index.html');
-  } catch (error) {
-    Logger.error('Error al cerrar sesión:', error);
-    // Aun así, intentar limpiar y redirigir
-    try {
-      localStorage.clear();
-    } catch (e) {
-      Logger.error('Error al limpiar localStorage:', e);
-    }
-    window.location.replace('index.html');
-  }
+    const keys = Object.keys(localStorage);
+    keys.forEach(key => { if (key.startsWith('pcre_')) localStorage.removeItem(key); });
+    if (getUser()) localStorage.clear();
+  } catch (e) { /* ignore */ }
+  window.location.replace(getLoginUrl());
 }
 
 /**
@@ -151,67 +110,42 @@ export async function tieneMultiplesRoles(user) {
 export async function redirigirPorTipoUsuario() {
   const user = getUser();
   if (!user) {
-    Logger.log('❌ redirigirPorTipoUsuario - No hay usuario');
-    window.location.href = 'index.html';
+    window.location.href = getLoginUrl();
     return;
   }
-  
-  Logger.log('🔍 redirigirPorTipoUsuario - Usuario:', user);
-  Logger.log('🔍 redirigirPorTipoUsuario - tipo_usuario:', user.tipo_usuario);
-  Logger.log('🔍 redirigirPorTipoUsuario - rol_activo:', user.rol_activo);
-  
   if (user.primera_vez) {
-    Logger.log('🔍 redirigirPorTipoUsuario - Primera vez, redirigiendo a cambiar_password');
-    window.location.href = 'cambiar_password.html';
+    window.location.href = (getBasePath() || '') + '/cambiar_password.html';
     return;
   }
-  
-  // Si tiene múltiples roles y no ha seleccionado uno, mostrar selección
   const multiplesRoles = await tieneMultiplesRoles(user);
   if (multiplesRoles && !user.rol_activo) {
-    Logger.log('🔍 redirigirPorTipoUsuario - Múltiples roles, redirigiendo a seleccionar_rol');
-    window.location.href = 'seleccionar_rol.html';
+    window.location.href = (getBasePath() || '') + '/seleccionar_rol.html';
     return;
   }
-  
-  // Si tiene un rol activo seleccionado, usar ese
   const tipoActivo = user.rol_activo || user.tipo_usuario;
-  Logger.log('🔍 redirigirPorTipoUsuario - Tipo activo:', tipoActivo);
-  
-  // CRÍTICO: Validar que admin tenga colegio_id antes de redirigir
-  if (tipoActivo === 'admin' && user.tipo_usuario === 'admin' && !user.colegio_id) {
-    Logger.error('❌ redirigirPorTipoUsuario - Admin sin colegio_id, bloqueando acceso');
-    mostrarAlerta('Tu cuenta no tiene un colegio asignado. Contacta al super administrador.', 'error');
-    setTimeout(() => {
-      logout();
-    }, 3000);
+
+  if ((tipoActivo === 'admin' || tipoActivo === 'super_admin') && user.tipo_usuario === 'admin' && !user.colegio_id) {
+    mostrarAlerta('Tu cuenta no tiene colegio asignado. Contacta al administrador.', 'error');
+    setTimeout(logout, 2000);
     return;
   }
-  
-  switch(tipoActivo) {
+
+  const base = getBasePath();
+  const b = base ? base + '/' : '';
+  switch (tipoActivo) {
     case 'estudiante':
-      window.location.href = 'equipo/dashboard.html';
+      window.location.href = b + 'equipo/dashboard.html';
       break;
     case 'docente':
     case 'jurado':
-      window.location.href = 'jurado/dashboard.html';
+      window.location.href = b + 'jurado/dashboard.html';
       break;
     case 'admin':
     case 'super_admin':
-      // Validación adicional antes de redirigir
-      if (!user.colegio_id && user.tipo_usuario === 'admin') {
-        Logger.error('❌ redirigirPorTipoUsuario - Admin sin colegio_id, bloqueando acceso');
-        mostrarAlerta('Tu cuenta no tiene un colegio asignado. Contacta al super administrador.', 'error');
-        setTimeout(() => {
-          logout();
-        }, 3000);
-        return;
-      }
-      window.location.href = 'admin/dashboard.html';
+      window.location.href = b + 'admin/dashboard.html';
       break;
     default:
-      Logger.log('⚠️ redirigirPorTipoUsuario - Tipo no reconocido:', tipoActivo, '- Redirigiendo a index.html');
-      window.location.href = 'index.html';
+      window.location.href = getLoginUrl();
   }
 }
 
