@@ -41,21 +41,34 @@
 
     <script type="module">
         import { getUser, logout, getLoginUrl } from '../js/auth.js';
-        const user = getUser();
-        console.log('🔍 jurado/dashboard - Usuario:', user);
-        console.log('🔍 jurado/dashboard - tipo_usuario:', user?.tipo_usuario);
-        console.log('🔍 jurado/dashboard - rol_activo:', user?.rol_activo);
         
-        if (!user) {
-            console.error('❌ jurado/dashboard - No hay usuario, redirigiendo a login');
-            window.location.href = getLoginUrl();
-        } else {
-            console.log('✅ jurado/dashboard - Usuario autenticado, mostrando dashboard');
-            document.getElementById('btn-logout').addEventListener('click', (e) => {
-                e.preventDefault();
-                logout();
-            });
-        }
+        // Esperar un momento para asegurar que localStorage esté sincronizado
+        (async () => {
+            await new Promise(resolve => setTimeout(resolve, 50));
+            
+            const user = getUser();
+            console.log('🔍 jurado/dashboard - Usuario:', user);
+            console.log('🔍 jurado/dashboard - tipo_usuario:', user?.tipo_usuario);
+            console.log('🔍 jurado/dashboard - rol_activo:', user?.rol_activo);
+            
+            if (!user) {
+                console.error('❌ jurado/dashboard - No hay usuario, redirigiendo a login');
+                window.location.replace(getLoginUrl());
+            } else {
+                const tipoActivo = user.rol_activo || user.tipo_usuario;
+                if (tipoActivo !== 'jurado' && tipoActivo !== 'docente') {
+                    console.error('❌ jurado/dashboard - Usuario no es jurado:', tipoActivo);
+                    alert('No tienes permisos para acceder a esta página');
+                    window.location.replace(getLoginUrl());
+                } else {
+                    console.log('✅ jurado/dashboard - Usuario autenticado, mostrando dashboard');
+                    document.getElementById('btn-logout').addEventListener('click', (e) => {
+                        e.preventDefault();
+                        logout();
+                    });
+                }
+            }
+        })();
     </script>
 </body>
 </html>
