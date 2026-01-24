@@ -8,7 +8,7 @@
 
 // Valores por defecto hardcodeados para GitHub Pages (BETA)
 const SUPABASE_URL_FALLBACK = 'https://tvqugpqsmulwfqwwgkgp.supabase.co';
-const SUPABASE_KEY_FALLBACK = 'eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpc3MiOiJzdXBhYmFzZSIsInJlZiI6InR2cXVncHFzbXVsd2Zxd3dna2dwIiwicm9sZSI6ImFub24iLCJpYXQiOjE3NjkyMDgyMjcsImV4cCI6MjA4NDc4NDIyN30.H3Tk5QWTsjQuS4--_AnL2PipZjvVE-XYfU5920zP1C';
+const SUPABASE_KEY_FALLBACK = 'eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpc3MiOiJzdXBhYmFzZSIsInJlZiI6InR2cXVncHFzbXVsd2Zxd3dna2dwIiwicm9sZSI6ImFub24iLCJpYXQiOjE3NjkyMDgyMjcsImV4cCI6MjA4NDc4NDIyN30.H3Tk5QWTsjQuS4--_AnL2PipZjvVE-XYfU5920zP1Co';
 const API_BASE_FALLBACK = 'https://tvqugpqsmulwfqwwgkgp.supabase.co/rest/v1';
 
 // Configuración final: usar variables de entorno si están disponibles, sino usar fallback
