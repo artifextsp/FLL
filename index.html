@@ -128,8 +128,20 @@
                 
                 console.log('✅ Usuario guardado y verificado. Redirigiendo...');
                 
-                // Redirigir (la función ya maneja el timing interno)
-                await redirigirPorTipoUsuario();
+                // Obtener URL de destino
+                const destino = await redirigirPorTipoUsuario();
+                console.log('🎯 URL de destino obtenida:', destino);
+                
+                // CRÍTICO: Redirigir inmediatamente sin más código después
+                if (destino) {
+                    console.log('🚀 REDIRIGIENDO AHORA a:', destino);
+                    // Forzar navegación inmediata
+                    window.location.href = destino;
+                    // NO ejecutar más código después de esto
+                    return;
+                } else {
+                    throw new Error('No se pudo determinar la URL de destino');
+                }
                 
             } catch (e) {
                 console.error('❌ Error en login:', e);

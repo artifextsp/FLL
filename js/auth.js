@@ -326,8 +326,7 @@ export async function redirigirPorTipoUsuario() {
     const user = getUser();
     if (!user) {
       console.error('❌ redirigirPorTipoUsuario: No hay usuario después de espera');
-      window.location.replace(getLoginUrl());
-      return;
+      return getLoginUrl();
     }
     
     console.log('🔍 redirigirPorTipoUsuario - Usuario:', user);
@@ -338,8 +337,7 @@ export async function redirigirPorTipoUsuario() {
     if (user.primera_vez) {
       console.log('⚠️ Primera vez, redirigiendo a cambiar_password');
       const base = getBasePath();
-      window.location.replace((base || '') + '/cambiar_password.html');
-      return;
+      return (base || '') + '/cambiar_password.html';
     }
     
     // Verificar múltiples roles (async)
@@ -347,8 +345,7 @@ export async function redirigirPorTipoUsuario() {
     if (multiplesRoles && !user.rol_activo) {
       console.log('⚠️ Múltiples roles, redirigiendo a seleccionar_rol');
       const base = getBasePath();
-      window.location.replace((base || '') + '/seleccionar_rol.html');
-      return;
+      return (base || '') + '/seleccionar_rol.html';
     }
     
     const tipoActivo = user.rol_activo || user.tipo_usuario;
@@ -359,7 +356,7 @@ export async function redirigirPorTipoUsuario() {
       console.error('❌ Admin sin colegio_id');
       alert('Tu cuenta no tiene colegio asignado. Contacta al administrador.');
       setTimeout(() => logout(), 2000);
-      return;
+      return getLoginUrl();
     }
 
     // Construir URL de destino
@@ -392,14 +389,14 @@ export async function redirigirPorTipoUsuario() {
     
     console.log('🚀 Redirigiendo a:', destino);
     
-    // Usar replace para evitar que el usuario pueda volver con el botón atrás
-    // y asegurar que la redirección se complete
-    window.location.replace(destino);
+    // Retornar la URL en lugar de redirigir aquí
+    // Esto permite que el código que llama maneje la redirección de forma síncrona
+    return destino;
     
   } catch (error) {
     console.error('❌ redirigirPorTipoUsuario - Error crítico:', error);
-    // En caso de error, redirigir al login
-    window.location.replace(getLoginUrl());
+    // En caso de error, retornar URL de login
+    return getLoginUrl();
   }
 }
 

@@ -42,32 +42,45 @@
     <script type="module">
         import { getUser, logout, getLoginUrl } from '../js/auth.js';
         
+        console.log('📄 jurado/dashboard.html - Script cargado');
+        console.log('📄 jurado/dashboard.html - URL actual:', window.location.href);
+        console.log('📄 jurado/dashboard.html - Pathname:', window.location.pathname);
+        
         // Esperar un momento para asegurar que localStorage esté sincronizado
         (async () => {
-            await new Promise(resolve => setTimeout(resolve, 50));
+            console.log('⏳ jurado/dashboard - Esperando sincronización de localStorage...');
+            await new Promise(resolve => setTimeout(resolve, 100));
             
             const user = getUser();
-            console.log('🔍 jurado/dashboard - Usuario:', user);
+            console.log('🔍 jurado/dashboard - Usuario obtenido:', user);
             console.log('🔍 jurado/dashboard - tipo_usuario:', user?.tipo_usuario);
             console.log('🔍 jurado/dashboard - rol_activo:', user?.rol_activo);
             
             if (!user) {
                 console.error('❌ jurado/dashboard - No hay usuario, redirigiendo a login');
-                window.location.replace(getLoginUrl());
-            } else {
-                const tipoActivo = user.rol_activo || user.tipo_usuario;
-                if (tipoActivo !== 'jurado' && tipoActivo !== 'docente') {
-                    console.error('❌ jurado/dashboard - Usuario no es jurado:', tipoActivo);
-                    alert('No tienes permisos para acceder a esta página');
-                    window.location.replace(getLoginUrl());
-                } else {
-                    console.log('✅ jurado/dashboard - Usuario autenticado, mostrando dashboard');
-                    document.getElementById('btn-logout').addEventListener('click', (e) => {
-                        e.preventDefault();
-                        logout();
-                    });
-                }
+                const loginUrl = getLoginUrl();
+                console.log('🔄 Redirigiendo a login:', loginUrl);
+                window.location.replace(loginUrl);
+                return;
             }
+            
+            const tipoActivo = user.rol_activo || user.tipo_usuario;
+            console.log('🔍 jurado/dashboard - Tipo activo:', tipoActivo);
+            
+            if (tipoActivo !== 'jurado' && tipoActivo !== 'docente') {
+                console.error('❌ jurado/dashboard - Usuario no es jurado:', tipoActivo);
+                alert('No tienes permisos para acceder a esta página');
+                const loginUrl = getLoginUrl();
+                console.log('🔄 Redirigiendo a login:', loginUrl);
+                window.location.replace(loginUrl);
+                return;
+            }
+            
+            console.log('✅ jurado/dashboard - Usuario autenticado correctamente, mostrando dashboard');
+            document.getElementById('btn-logout').addEventListener('click', (e) => {
+                e.preventDefault();
+                logout();
+            });
         })();
     </script>
 </body>
