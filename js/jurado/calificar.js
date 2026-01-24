@@ -567,12 +567,49 @@ async function guardarCalificacion() {
                 observacion_general: observacionGeneral
             };
             
+            // Asegurar que los UUIDs sean strings
+            const datosLimpios = {
+                jurado_id: String(jurado.id),
+                equipo_id: String(equipoSeleccionado),
+                rubrica_id: String(rubricaSeleccionada),
+                aspecto_id: String(cal.aspecto_id),
+                puntuacion: parseInt(nivel.puntuacion) || 0,
+                nivel_seleccionado: parseInt(cal.nivel) || null,
+                observacion_aspecto: cal.observacion || null,
+                observacion_general: observacionGeneral || null
+            };
+            
+            // Solo incluir observacion_general si no está vacía y es la primera calificación
+            if (!observacionGeneral || observacionGeneral.trim() === '') {
+                delete datosLimpios.observacion_general;
+            }
+            
+            console.log('Guardando calificación:', datosLimpios);
+            
             if (existente) {
                 // Actualizar
-                await updateSupabase('calificaciones', existente.id, datosCalificacion);
+                const { data: updated, error: updateError } = await supabase
+                    .from('calificaciones')
+                    .update(datosLimpios)
+                    .eq('id', existente.id)
+                    .select();
+                
+                if (updateError) {
+                    console.error('Error al actualizar:', updateError);
+                    throw updateError;
+                }
             } else {
                 // Crear
-                await insertSupabase('calificaciones', datosCalificacion);
+                const { data: inserted, error: insertError } = await supabase
+                    .from('calificaciones')
+                    .insert(datosLimpios)
+                    .select();
+                
+                if (insertError) {
+                    console.error('Error al insertar:', insertError);
+                    console.error('Datos que se intentaron insertar:', datosLimpios);
+                    throw insertError;
+                }
             }
         }
         
@@ -582,8 +619,23 @@ async function guardarCalificacion() {
         await cargarCalificacionesExistentes();
         
     } catch (error) {
-        console.error('Error guardando calificación:', error);
-        mostrarAlerta('Error al guardar la calificación', 'error');
+        console.error('❌ Error guardando calificación:', error);
+        console.error('Detalles:', {
+            message: error.message,
+            code: error.code,
+            details: error.details,
+            hint: error.hint
+        });
+        
+        let mensajeError = 'Error al guardar la calificación';
+        if (error.message) {
+            mensajeError += `: ${error.message}`;
+        }
+        if (error.hint) {
+            mensajeError += ` (${error.hint})`;
+        }
+        
+        mostrarAlerta(mensajeError, 'error');
     } finally {
         btnGuardar.disabled = false;
         btnGuardar.textContent = 'Guardar Calificación';
