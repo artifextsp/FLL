@@ -224,17 +224,12 @@ export function redirectToDashboard() {
   const dashboardUrl = getDashboardUrl(user.role);
   console.log('🚀 Redirigiendo a:', dashboardUrl);
   
-  // CRÍTICO: Usar replace para forzar navegación y evitar problemas
-  // No usar href porque puede ser bloqueado o no ejecutarse
-  window.location.replace(dashboardUrl);
+  // CRÍTICO: Redirección directa e inmediata
+  // Usar href directamente - es el método más confiable
+  window.location.href = dashboardUrl;
   
-  // Forzar navegación inmediata - si replace no funciona, usar href como fallback
-  setTimeout(() => {
-    if (window.location.href !== dashboardUrl) {
-      console.warn('⚠️ Replace no funcionó, usando href como fallback');
-      window.location.href = dashboardUrl;
-    }
-  }, 50);
+  // NO ejecutar más código después de esto
+  // Si la navegación no funciona, el problema está en otro lugar
 }
 
 // ============================================

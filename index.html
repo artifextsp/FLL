@@ -45,7 +45,7 @@
         // SISTEMA DE LOGIN SIMPLIFICADO
         // ============================================
         
-        import { setUser, getUser, clearSession, redirectToDashboard } from './js/auth.js';
+        import { setUser, getUser, clearSession, getDashboardUrl } from './js/auth.js';
         
         const usernameInput = document.getElementById('username');
         const passwordInput = document.getElementById('password');
@@ -126,10 +126,14 @@
                 
                 console.log('✅ Login exitoso, redirigiendo...');
                 
-                // Redirigir inmediatamente - CRÍTICO: no ejecutar más código después
-                redirectToDashboard();
+                // Obtener URL del dashboard directamente
+                const dashboardUrl = getDashboardUrl(userData.role);
+                console.log('🎯 URL del dashboard:', dashboardUrl);
                 
-                // NO EJECUTAR MÁS CÓDIGO DESPUÉS DE redirectToDashboard()
+                // Redirigir inmediatamente - CRÍTICO: no ejecutar más código después
+                window.location.href = dashboardUrl;
+                
+                // NO EJECUTAR MÁS CÓDIGO DESPUÉS DE ESTO
                 return;
                 
             } catch (error) {
