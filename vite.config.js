@@ -13,6 +13,7 @@ export default defineConfig({
         adminEventos: resolve(__dirname, 'admin/eventos.html'),
         adminEquipos: resolve(__dirname, 'admin/equipos.html'),
         adminJurados: resolve(__dirname, 'admin/jurados.html'),
+        adminRubricas: resolve(__dirname, 'admin/rubricas.html'),
         juradoDashboard: resolve(__dirname, 'jurado/dashboard.html'),
         equipoDashboard: resolve(__dirname, 'equipo/dashboard.html')
       }
