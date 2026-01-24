@@ -40,8 +40,8 @@
         import { setUser, redirigirPorTipoUsuario } from './js/auth.js';
         
         // Simulación de login para desarrollo (hasta integrar con Ludens real)
-        document.getElementById('btn-login').addEventListener('click', () => {
-            const username = document.getElementById('username').value;
+        document.getElementById('btn-login').addEventListener('click', async () => {
+            const username = (document.getElementById('username').value || '').trim();
             
             if (!username) {
                 mostrarError('Por favor ingresa un usuario');
@@ -50,25 +50,29 @@
             
             // Simular usuario según el input (para pruebas)
             let rol = 'jurado';
-            
-            // Lógica de roles para desarrollo
             if (username.includes('admin') || username === '94300774') {
                 rol = 'admin';
             } else if (username.includes('equipo')) {
                 rol = 'estudiante';
             }
             
+            // IMPORTANTE: id = usuario para que coincida con usuario_id en jurados (admin/equipo igual)
             const fakeUser = {
-                id: username === '94300774' ? '94300774' : '123456',
-                username: username,
+                id: username,
+                username,
                 tipo_usuario: rol,
                 rol_activo: rol,
                 nombre: username === '94300774' ? 'Hansel Peña' : username,
-                colegio_id: 1 // Necesario para admin
+                colegio_id: rol === 'admin' ? 1 : undefined
             };
             
-            setUser(fakeUser);
-            redirigirPorTipoUsuario();
+            try {
+                setUser(fakeUser);
+                await redirigirPorTipoUsuario();
+            } catch (e) {
+                console.error('Error en login:', e);
+                mostrarError('Error al iniciar sesión. Revisa la consola.');
+            }
         });
 
         function mostrarError(msg) {
