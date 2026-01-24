@@ -4,7 +4,7 @@
 
 # Dependencias
 node_modules/
-package-lock.json
+# package-lock.json - NO ignorar, necesario para GitHub Actions
 yarn.lock
 
 # Variables de entorno

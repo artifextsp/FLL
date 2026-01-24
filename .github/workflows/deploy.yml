@@ -3,14 +3,13 @@ name: Deploy to GitHub Pages
 on:
   push:
     branches: [ main ]
-  workflow_dispatch: # Permite ejecución manual
+  workflow_dispatch:
 
 permissions:
   contents: read
   pages: write
   id-token: write
 
-# Permitir solo una ejecución concurrente
 concurrency:
   group: "pages"
   cancel-in-progress: false
@@ -19,7 +18,7 @@ jobs:
   build:
     runs-on: ubuntu-latest
     steps:
-      - name: Checkout
+      - name: Checkout repository
         uses: actions/checkout@v4
       
       - name: Setup Node.js
@@ -29,13 +28,26 @@ jobs:
           cache: 'npm'
       
       - name: Install dependencies
-        run: npm ci
+        run: |
+          npm ci
+          echo "✅ Dependencias instaladas"
       
-      - name: Build
-        run: npm run build
+      - name: Build project
+        run: |
+          npm run build
+          echo "✅ Build completado"
         env:
           BASE_PATH: /FLL
           NODE_ENV: production
+      
+      - name: Verify build output
+        run: |
+          if [ ! -d "dist" ]; then
+            echo "❌ Error: dist/ no existe"
+            exit 1
+          fi
+          echo "✅ dist/ existe"
+          ls -la dist/ | head -10
       
       - name: Setup Pages
         uses: actions/configure-pages@v4
@@ -55,4 +67,5 @@ jobs:
       - name: Deploy to GitHub Pages
         id: deployment
         uses: actions/deploy-pages@v4
+
 
