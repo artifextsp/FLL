@@ -238,9 +238,33 @@
             min-height: 56px; /* Muy grande para móvil */
         }
         
-        /* Espacio para el botón fijo */
+        /* Espacio para el botón fijo - CRÍTICO para que el campo sea visible */
         .content-wrapper {
-            padding-bottom: 100px; /* Espacio para botón fijo */
+            padding-bottom: 150px; /* Espacio base para botón fijo */
+        }
+        
+        /* En móviles, MUCHO más espacio para que el campo completo sea visible */
+        @media (max-width: 768px) {
+            .content-wrapper {
+                padding-bottom: 350px !important; /* Espacio MUY grande para móviles - permite ver todo el campo */
+            }
+            
+            /* Asegurar que la sección de calificación tenga espacio suficiente */
+            .seccion-calificacion {
+                padding-bottom: 60px !important; /* Más espacio después de la sección */
+                margin-bottom: 40px !important;
+            }
+            
+            /* Asegurar que el campo de observación general tenga espacio extra debajo */
+            #observacion-general {
+                margin-bottom: 30px !important;
+            }
+            
+            /* Contenedor del campo de observación general con espacio extra */
+            #seccion-calificacion > div:last-child {
+                margin-bottom: 50px !important;
+                padding-bottom: 30px !important;
+            }
         }
         
         /* Filtro de equipos */
@@ -354,7 +378,7 @@
                 <!-- Se llena dinámicamente con los aspectos y niveles -->
             </div>
             
-            <div style="margin-top: 24px;">
+            <div style="margin-top: 24px; margin-bottom: 80px; padding-bottom: 40px;">
                 <label class="form-label" for="observacion-general" style="display: block; margin-bottom: 8px; font-weight: 600;">
                     📝 Observación General (Opcional)
                 </label>
@@ -362,8 +386,8 @@
                           class="form-textarea" 
                           placeholder="Escribe aquí tus observaciones generales sobre la calificación completa del equipo..."
                           rows="6"></textarea>
-                <p style="font-size: 0.85rem; color: var(--text-secondary); margin-top: 6px;">
-                    💡 Puedes hacer scroll dentro del campo para ver todo el texto mientras escribes.
+                <p style="font-size: 0.85rem; color: var(--text-secondary); margin-top: 6px; margin-bottom: 20px;">
+                    💡 Puedes hacer scroll hacia abajo en la página para ver todo el campo completo.
                 </p>
             </div>
         </div>

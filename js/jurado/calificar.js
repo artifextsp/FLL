@@ -84,9 +84,29 @@ function configurarObservacionGeneral() {
         }
     });
     
-    // Cuando el usuario hace focus, asegurar que pueda ver el contenido
+    // Cuando el usuario hace focus, hacer scroll de la página para que el campo sea completamente visible
     observacionGeneral.addEventListener('focus', function() {
-        // Scroll al final si hay contenido
+        // Scroll de la página para que el campo completo sea visible (no solo el textarea interno)
+        setTimeout(() => {
+            // Calcular posición del campo
+            const rect = this.getBoundingClientRect();
+            const scrollY = window.scrollY || window.pageYOffset;
+            const viewportHeight = window.innerHeight;
+            
+            // Altura del botón fijo (aproximadamente 90px)
+            const buttonHeight = 90;
+            
+            // Calcular posición ideal: campo completo visible + espacio para botón
+            const idealPosition = scrollY + rect.top - (viewportHeight - rect.height - buttonHeight - 20);
+            
+            // Hacer scroll suave a la posición ideal
+            window.scrollTo({
+                top: Math.max(0, idealPosition),
+                behavior: 'smooth'
+            });
+        }, 300); // Delay para que el teclado virtual se abra primero en móviles
+        
+        // Scroll interno al final si hay contenido
         if (this.value.length > 0) {
             setTimeout(() => {
                 this.scrollTop = this.scrollHeight;
@@ -95,6 +115,26 @@ function configurarObservacionGeneral() {
         
         // Asegurar que el scrollbar sea visible
         this.style.overflowY = 'auto';
+    });
+    
+    // También hacer scroll cuando el usuario empieza a escribir
+    observacionGeneral.addEventListener('input', function() {
+        // Asegurar que el campo siga siendo visible mientras escribe
+        const rect = this.getBoundingClientRect();
+        const viewportHeight = window.innerHeight;
+        const buttonHeight = 90;
+        
+        // Si el campo está siendo cubierto por el botón, hacer scroll
+        if (rect.bottom > viewportHeight - buttonHeight) {
+            setTimeout(() => {
+                const scrollY = window.scrollY || window.pageYOffset;
+                const idealPosition = scrollY + (rect.bottom - (viewportHeight - buttonHeight - 20));
+                window.scrollTo({
+                    top: Math.max(0, idealPosition),
+                    behavior: 'smooth'
+                });
+            }, 100);
+        }
     });
     
     // Mejorar el scroll en móviles cuando el usuario toca el campo
