@@ -38,34 +38,43 @@ export function setUser(userData) {
 export function requireAuth(tipoRequerido = null) {
   const user = getUser();
   
+  Logger.log('🔒 requireAuth - tipoRequerido:', tipoRequerido);
+  Logger.log('🔒 requireAuth - user:', user);
+  
   if (!user || !user.id) {
+    Logger.warn('❌ requireAuth - No hay usuario autenticado');
     window.location.href = 'index.html';
     return null;
   }
   
   // Usar rol activo si está disponible, sino usar tipo_usuario
   const tipoActivo = user.rol_activo || user.tipo_usuario;
+  Logger.log('🔒 requireAuth - tipoActivo:', tipoActivo);
   
   if (tipoRequerido && tipoActivo !== tipoRequerido) {
     // Si el usuario tiene múltiples roles, verificar si puede cambiar de rol
     if (user.tipo_usuario === 'admin' && tipoRequerido === 'docente') {
       // Verificar si tiene asignaciones como docente
       // Por ahora, permitir acceso si es admin (tiene acceso total)
+      Logger.log('✅ requireAuth - Admin accediendo como docente (permitido)');
       return user;
     }
     
     // Super admin tiene acceso a todo, incluyendo funciones de admin
     if (user.tipo_usuario === 'super_admin' && tipoRequerido === 'admin') {
+      Logger.log('✅ requireAuth - Super admin accediendo como admin (permitido)');
       return user; // Super admin puede acceder a funciones de admin
     }
     
-    mostrarAlerta('No tienes permisos para acceder a esta página', 'error');
+    Logger.warn(`❌ requireAuth - Permisos insuficientes. Requerido: ${tipoRequerido}, Actual: ${tipoActivo}`);
+    mostrarAlerta(`No tienes permisos para acceder a esta página. Requerido: ${tipoRequerido}, Tu rol: ${tipoActivo}`, 'error');
     setTimeout(() => {
       window.location.href = 'index.html';
     }, 2000);
     return null;
   }
   
+  Logger.log('✅ requireAuth - Acceso permitido');
   return user;
 }
 
@@ -74,26 +83,45 @@ export function requireAuth(tipoRequerido = null) {
  */
 export function logout() {
   try {
+    Logger.log('🚪 Cerrando sesión...');
+    
     // Limpiar datos de usuario
     localStorage.removeItem('pcre_user');
     
     // Limpiar cualquier otro dato relacionado con la sesión
     try {
       const keys = Object.keys(localStorage);
+      let limpiados = 0;
       keys.forEach(key => {
         if (key.startsWith('pcre_')) {
           localStorage.removeItem(key);
+          limpiados++;
         }
       });
+      Logger.log(`🧹 Limpiados ${limpiados} elementos de localStorage`);
     } catch (cleanError) {
       Logger.warn('Error al limpiar datos adicionales:', cleanError);
     }
+    
+    // Verificar que se limpió
+    const userRestante = getUser();
+    if (userRestante) {
+      Logger.warn('⚠️ Aún hay datos de usuario después de logout, forzando limpieza');
+      localStorage.clear(); // Último recurso
+    }
+    
+    Logger.log('✅ Sesión cerrada correctamente');
     
     // Redirigir a la página de login
     window.location.replace('index.html');
   } catch (error) {
     Logger.error('Error al cerrar sesión:', error);
-    // Aun así, intentar redirigir
+    // Aun así, intentar limpiar y redirigir
+    try {
+      localStorage.clear();
+    } catch (e) {
+      Logger.error('Error al limpiar localStorage:', e);
+    }
     window.location.replace('index.html');
   }
 }

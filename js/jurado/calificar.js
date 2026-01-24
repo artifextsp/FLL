@@ -268,18 +268,23 @@ async function cargarAspectos() {
         
         aspectosRubrica = aspectos || [];
         
-        // Cargar niveles para cada aspecto
+        // Cargar niveles para cada aspecto (si no hay en BD, usar 4 por defecto)
         for (const aspecto of aspectosRubrica) {
             const { data: niveles, error: errNiveles } = await supabase
                 .from('niveles_aspecto')
                 .select('*')
                 .eq('aspecto_id', aspecto.id)
                 .eq('activo', true)
-                .order('nivel');
+                .order('orden', { ascending: true });
                 
-            if (!errNiveles && niveles) {
-                nivelesPorAspecto[aspecto.id] = niveles;
+            let lista = (niveles && niveles.length) ? niveles : null;
+            if (lista) {
+                lista = [...lista].sort((a, b) => (a.orden ?? a.nivel) - (b.orden ?? b.nivel));
+            } else {
+                if (errNiveles) console.warn('Niveles para aspecto', aspecto.nombre, ':', errNiveles);
+                lista = getDefaultNiveles();
             }
+            nivelesPorAspecto[aspecto.id] = lista;
         }
         
         renderizarAspectos();
@@ -405,14 +410,25 @@ function renderizarAspectos() {
     });
 }
 
+const ETIQUETAS_NIVEL = {
+    1: 'Básico',
+    2: 'En Desarrollo',
+    3: 'Cumplido',
+    4: 'Superado'
+};
+
 function getEtiquetaNivel(nivel) {
-    const etiquetas = {
-        1: 'Básico',
-        2: 'En Desarrollo',
-        3: 'Cumplido',
-        4: 'Superado'
-    };
-    return etiquetas[nivel] || '';
+    return ETIQUETAS_NIVEL[nivel] || '';
+}
+
+/** Niveles por defecto (1–4) cuando un aspecto no tiene en BD */
+function getDefaultNiveles() {
+    return [
+        { nivel: 1, descripcion: 'Evidencia mínima.', puntuacion: 1, orden: 1 },
+        { nivel: 2, descripcion: 'Evidencia parcial.', puntuacion: 2, orden: 2 },
+        { nivel: 3, descripcion: 'Evidencia clara.', puntuacion: 3, orden: 3 },
+        { nivel: 4, descripcion: 'Supera expectativas.', puntuacion: 4, orden: 4 }
+    ];
 }
 
 function mostrarSeccionCalificacion() {

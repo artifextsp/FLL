@@ -28,6 +28,12 @@
                 <button id="btn-login" class="btn btn-primary" style="width: 100%;">Iniciar Sesión</button>
                 
                 <div id="error-msg" class="alerta alerta-error mt-md hidden"></div>
+                
+                <div class="mt-md" style="text-align: center;">
+                    <button id="btn-limpiar-sesion" class="btn btn-secondary" style="font-size: 0.85rem; padding: 6px 12px; background: transparent; border: 1px solid var(--border);">
+                        🧹 Limpiar Sesión
+                    </button>
+                </div>
             </div>
             
             <p class="mt-lg text-secondary font-size-sm">
@@ -48,13 +54,32 @@
                 return;
             }
             
+            // LIMPIAR SESIÓN ANTERIOR primero (evita mezcla de credenciales)
+            try {
+                localStorage.removeItem('pcre_user');
+                // Limpiar cualquier otro dato relacionado
+                const keys = Object.keys(localStorage);
+                keys.forEach(key => {
+                    if (key.startsWith('pcre_')) {
+                        localStorage.removeItem(key);
+                    }
+                });
+            } catch (e) {
+                console.warn('Error limpiando localStorage:', e);
+            }
+            
             // Simular usuario según el input (para pruebas)
             let rol = 'jurado';
-            if (username.includes('admin') || username === '94300774') {
+            const usernameLower = username.toLowerCase();
+            
+            // Detección más robusta de admin
+            if (username === '94300774' || usernameLower.includes('admin') || usernameLower === 'admin') {
                 rol = 'admin';
-            } else if (username.includes('equipo')) {
+            } else if (usernameLower.includes('equipo') || usernameLower.includes('estudiante')) {
                 rol = 'estudiante';
             }
+            
+            console.log('🔐 Login:', { username, rol });
             
             // IMPORTANTE: id = usuario para que coincida con usuario_id en jurados (admin/equipo igual)
             const fakeUser = {
@@ -66,12 +91,25 @@
                 colegio_id: rol === 'admin' ? 1 : undefined
             };
             
+            console.log('👤 Usuario creado:', fakeUser);
+            
             try {
-                setUser(fakeUser);
+                const guardado = setUser(fakeUser);
+                if (!guardado) {
+                    throw new Error('No se pudo guardar el usuario en localStorage');
+                }
+                
+                // Verificar que se guardó correctamente
+                const verificado = getUser();
+                if (!verificado || verificado.id !== username) {
+                    throw new Error('El usuario no se guardó correctamente');
+                }
+                
+                console.log('✅ Usuario guardado correctamente:', verificado);
                 await redirigirPorTipoUsuario();
             } catch (e) {
-                console.error('Error en login:', e);
-                mostrarError('Error al iniciar sesión. Revisa la consola.');
+                console.error('❌ Error en login:', e);
+                mostrarError('Error al iniciar sesión: ' + (e.message || 'Error desconocido'));
             }
         });
 
@@ -81,6 +119,18 @@
             el.classList.remove('hidden');
             setTimeout(() => el.classList.add('hidden'), 3000);
         }
+        
+        // Botón para limpiar sesión manualmente
+        document.getElementById('btn-limpiar-sesion').addEventListener('click', () => {
+            try {
+                localStorage.clear();
+                mostrarError('Sesión limpiada. Puedes iniciar sesión de nuevo.');
+                console.log('🧹 localStorage limpiado manualmente');
+            } catch (e) {
+                console.error('Error limpiando:', e);
+                mostrarError('Error al limpiar sesión');
+            }
+        });
     </script>
 </body>
 </html>
