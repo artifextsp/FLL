@@ -10,10 +10,12 @@
         table { width: 100%; border-collapse: collapse; min-width: 600px; }
         th, td { padding: 12px; text-align: left; border-bottom: 1px solid var(--border); }
         th { background-color: var(--surface); font-weight: 600; }
-        .modal { position: fixed; top: 0; left: 0; width: 100%; height: 100%; background: rgba(0,0,0,0.5); display: flex; justify-content: center; align-items: center; z-index: 1000; }
-        .modal-content { background: white; padding: 24px; border-radius: var(--border-radius-lg); width: 90%; max-width: 500px; }
+        .modal { position: fixed; top: 0; left: 0; width: 100%; height: 100%; background: rgba(0,0,0,0.5); display: flex; justify-content: center; align-items: center; z-index: 1000; overflow-y: auto; }
+        .modal-content { background: white; padding: 24px; border-radius: var(--border-radius-lg); width: 90%; max-width: 800px; margin: 20px 0; }
         .btn-sm { padding: 4px 8px; font-size: 0.8rem; min-height: 30px; }
         .section-highlight { background: #f0f7ff; border: 2px solid var(--primary-color); border-radius: 12px; padding: 16px; margin-top: 24px; }
+        .nivel-fila { background: #f9f9f9; padding: 12px; border-radius: 8px; margin-bottom: 12px; }
+        .text-warning { color: #ff9800; }
     </style>
 </head>
 <body>
@@ -57,46 +59,30 @@
             </table>
         </div>
 
-        <!-- SECCIÓN 2: Gestión de Aspectos (Oculta por defecto) -->
+        <!-- SECCIÓN 2: Gestión de Aspectos -->
         <div id="seccion-aspectos" class="section-highlight hidden">
             <div style="display: flex; justify-content: space-between; align-items: center; margin-bottom: 16px;">
                 <h2 id="titulo-rubrica-aspectos">Aspectos de la Rúbrica</h2>
                 <button id="btn-cerrar-aspectos" class="btn btn-outline btn-sm">Cerrar</button>
             </div>
 
-            <div class="grid grid-2" style="gap: 24px; align-items: start;">
-                <!-- Formulario para agregar aspecto -->
-                <div class="card">
-                    <h3>Agregar Aspecto</h3>
-                    <form id="form-aspecto" class="mt-md">
-                        <div class="form-group">
-                            <label class="form-label">Nombre del Aspecto</label>
-                            <input type="text" id="aspecto_nombre" class="form-input" required placeholder="Ej: Diseño Mecánico">
-                        </div>
-                        <div class="form-group">
-                            <label class="form-label">Valor Máximo (Puntos)</label>
-                            <input type="number" id="aspecto_valor" class="form-input" required min="1" max="100" value="10">
-                        </div>
-                        <button type="submit" class="btn btn-secondary" style="width: 100%;">+ Agregar</button>
-                    </form>
-                </div>
+            <div style="margin-bottom: 16px;">
+                <button id="btn-nuevo-aspecto" class="btn btn-secondary">+ Nuevo Aspecto</button>
+            </div>
 
-                <!-- Tabla de aspectos -->
-                <div class="card">
-                    <h3>Lista de Aspectos</h3>
-                    <table class="mt-md">
-                        <thead>
-                            <tr>
-                                <th>Aspecto</th>
-                                <th class="text-center">Valor</th>
-                                <th></th>
-                            </tr>
-                        </thead>
-                        <tbody id="tabla-aspectos">
-                            <!-- Dinámico -->
-                        </tbody>
-                    </table>
-                </div>
+            <div class="card table-responsive">
+                <table>
+                    <thead>
+                        <tr>
+                            <th>Aspecto</th>
+                            <th>Niveles</th>
+                            <th class="text-right">Acciones</th>
+                        </tr>
+                    </thead>
+                    <tbody id="tabla-aspectos">
+                        <!-- Dinámico -->
+                    </tbody>
+                </table>
             </div>
         </div>
     </div>
@@ -126,10 +112,51 @@
         </div>
     </div>
 
+    <!-- Modal Aspecto (con niveles) -->
+    <div id="modal-aspecto" class="modal hidden">
+        <div class="modal-content">
+            <h2 id="modal-aspecto-titulo" class="mb-lg">Nuevo Aspecto</h2>
+            <form id="form-aspecto">
+                <div class="form-group">
+                    <label class="form-label">Nombre del Aspecto *</label>
+                    <input type="text" id="aspecto_nombre" class="form-input" required placeholder="Ej: IDENTIFICAR">
+                </div>
+                
+                <div class="form-group">
+                    <label class="form-label">Descripción del Aspecto</label>
+                    <textarea id="aspecto_descripcion" class="form-textarea" placeholder="Descripción opcional del aspecto..."></textarea>
+                </div>
+
+                <div class="form-group">
+                    <label class="form-label"><strong>Niveles de Puntuación (1-4)</strong></label>
+                    <p class="text-secondary" style="font-size: 0.9rem; margin-bottom: 12px;">
+                        Define los 4 niveles progresivos con sus descripciones. El jurado seleccionará uno de estos niveles al calificar.
+                    </p>
+                    <div id="lista-niveles">
+                        <!-- Se llena dinámicamente -->
+                    </div>
+                </div>
+
+                <div class="text-right mt-lg">
+                    <button type="button" id="btn-cancelar-aspecto" class="btn btn-outline">Cancelar</button>
+                    <button type="submit" class="btn btn-primary">Guardar Aspecto</button>
+                </div>
+            </form>
+        </div>
+    </div>
+
     <script type="module">
         import { requireAuth, logout } from '../js/auth.js';
         requireAuth('admin');
         document.getElementById('btn-logout').addEventListener('click', (e) => { e.preventDefault(); logout(); });
+        document.getElementById('btn-nuevo-aspecto').addEventListener('click', () => {
+            const modalAspecto = document.getElementById('modal-aspecto');
+            const abrirModalAspecto = window.abrirModalAspecto || (() => {
+                // Fallback si la función no está disponible aún
+                alert('Por favor, primero selecciona una rúbrica y haz clic en "Gestionar Aspectos"');
+            });
+            abrirModalAspecto();
+        });
     </script>
     <script type="module" src="../js/admin/rubricas.js"></script>
 </body>
