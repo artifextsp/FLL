@@ -1,0 +1,46 @@
+🔐 LOGIN (Todos)
+https://artifextsp.github.io/FLL/
+
+👨‍💼 ADMINISTRADOR
+
+Dashboard:
+https://artifextsp.github.io/FLL/admin/dashboard.html
+
+Eventos:
+https://artifextsp.github.io/FLL/admin/eventos.html
+
+Equipos:
+https://artifextsp.github.io/FLL/admin/equipos.html
+
+Jurados:
+https://artifextsp.github.io/FLL/admin/jurados.html
+
+Rúbricas:
+https://artifextsp.github.io/FLL/admin/rubricas.html
+
+👨‍⚖️ JURADOS
+
+Dashboard:
+https://artifextsp.github.io/FLL/jurado/dashboard.html
+
+Calificar Equipos:
+https://artifextsp.github.io/FLL/jurado/calificar.html
+
+🤖 EQUIPOS
+
+Dashboard:
+https://artifextsp.github.io/FLL/equipo/dashboard.html
+
+Mis Calificaciones Detalladas ⭐:
+https://artifextsp.github.io/FLL/equipo/mi-calificacion.html
+
+Resultados Generales:
+https://artifextsp.github.io/FLL/equipo/resultados.html
+
+📊 RESULTADOS
+
+Ranking General:
+https://artifextsp.github.io/FLL/equipo/resultados.html
+
+🗑️ ELIMINAR CALIFICACIONES
+(En Dashboard Admin - Botón rojo)

@@ -142,6 +142,82 @@
             resize: vertical;
         }
         
+        /* Mejoras para Observación General en móviles */
+        #observacion-general {
+            width: 100%;
+            padding: 16px;
+            border: 2px solid var(--border);
+            border-radius: 10px;
+            font-size: 1rem; /* Más grande para móvil */
+            min-height: 180px; /* Altura mínima mayor para móvil - MUY IMPORTANTE */
+            max-height: 400px; /* Altura máxima para evitar que ocupe toda la pantalla */
+            resize: vertical;
+            overflow-y: auto !important; /* Scroll visible - FORZAR */
+            -webkit-overflow-scrolling: touch; /* Scroll suave en iOS */
+            line-height: 1.6; /* Mejor espaciado entre líneas */
+            font-family: inherit;
+            box-sizing: border-box;
+            /* Asegurar que el scroll siempre funcione */
+            word-wrap: break-word;
+            white-space: pre-wrap;
+        }
+        
+        /* Asegurar que el scroll sea visible y funcional */
+        #observacion-general:focus {
+            border-color: var(--primary-color);
+            outline: none;
+            box-shadow: 0 0 0 3px rgba(33, 150, 243, 0.1);
+            /* Cuando está enfocado, asegurar que el scroll funcione */
+            overflow-y: auto !important;
+        }
+        
+        /* En móviles, hacer que el textarea sea más grande por defecto */
+        @media (max-width: 768px) {
+            #observacion-general {
+                min-height: 200px !important; /* Aún más grande en móvil - CRÍTICO */
+                font-size: 16px !important; /* Prevenir zoom en iOS */
+                padding: 14px;
+                /* Asegurar scroll visible en móviles */
+                overflow-y: scroll !important;
+                -webkit-overflow-scrolling: touch;
+            }
+            
+            /* Asegurar que el contenedor no corte el textarea */
+            .seccion-calificacion {
+                padding-bottom: 20px;
+            }
+            
+            /* Asegurar que el contenido tenga espacio suficiente */
+            .content-wrapper {
+                padding-bottom: 120px; /* Más espacio para el botón fijo */
+            }
+        }
+        
+        /* Mejorar visibilidad del scrollbar en móviles */
+        #observacion-general::-webkit-scrollbar {
+            width: 10px; /* Más ancho para móviles */
+        }
+        
+        #observacion-general::-webkit-scrollbar-track {
+            background: #f1f1f1;
+            border-radius: 5px;
+        }
+        
+        #observacion-general::-webkit-scrollbar-thumb {
+            background: var(--primary-color);
+            border-radius: 5px;
+            min-height: 30px; /* Mínimo para que sea fácil de tocar */
+        }
+        
+        #observacion-general::-webkit-scrollbar-thumb:hover {
+            background: #1976d2;
+        }
+        
+        /* Asegurar que el textarea siempre muestre el scroll cuando hay contenido */
+        #observacion-general:not(:empty) {
+            overflow-y: auto !important;
+        }
+        
         /* Botón guardar grande y fijo */
         .btn-guardar-fixed {
             position: fixed;
@@ -279,11 +355,16 @@
             </div>
             
             <div style="margin-top: 24px;">
-                <label class="form-label">Observación General (Opcional)</label>
+                <label class="form-label" for="observacion-general" style="display: block; margin-bottom: 8px; font-weight: 600;">
+                    📝 Observación General (Opcional)
+                </label>
                 <textarea id="observacion-general" 
                           class="form-textarea" 
-                          placeholder="Observaciones generales sobre la calificación completa..."
-                          rows="3"></textarea>
+                          placeholder="Escribe aquí tus observaciones generales sobre la calificación completa del equipo..."
+                          rows="6"></textarea>
+                <p style="font-size: 0.85rem; color: var(--text-secondary); margin-top: 6px;">
+                    💡 Puedes hacer scroll dentro del campo para ver todo el texto mientras escribes.
+                </p>
             </div>
         </div>
     </div>

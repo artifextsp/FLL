@@ -41,7 +41,70 @@ document.addEventListener('DOMContentLoaded', async () => {
     
     await cargarDatosIniciales();
     configurarEventListeners();
+    configurarObservacionGeneral();
 });
+
+/**
+ * Configurar el campo de observación general para mejor UX en móviles
+ */
+function configurarObservacionGeneral() {
+    const observacionGeneral = document.getElementById('observacion-general');
+    if (!observacionGeneral) return;
+    
+    // Auto-expandir el textarea cuando el usuario escribe
+    observacionGeneral.addEventListener('input', function() {
+        // Resetear altura para recalcular
+        this.style.height = 'auto';
+        
+        // Calcular nueva altura basada en el contenido
+        const scrollHeight = this.scrollHeight;
+        const minHeight = window.innerWidth <= 768 ? 200 : 180;
+        const maxHeight = window.innerWidth <= 768 ? 400 : 300;
+        
+        // Establecer altura entre min y max
+        const newHeight = Math.min(Math.max(scrollHeight, minHeight), maxHeight);
+        this.style.height = newHeight + 'px';
+        
+        // Asegurar que el scroll funcione si el contenido excede el máximo
+        if (scrollHeight > maxHeight) {
+            this.style.overflowY = 'auto';
+        } else {
+            this.style.overflowY = 'hidden';
+        }
+        
+        // Scroll automático al final cuando el usuario está escribiendo
+        // Solo si el cursor está al final del texto
+        const cursorPosition = this.selectionStart;
+        const textLength = this.value.length;
+        if (cursorPosition === textLength && textLength > 0) {
+            // Pequeño delay para asegurar que el DOM se actualice
+            setTimeout(() => {
+                this.scrollTop = this.scrollHeight;
+            }, 10);
+        }
+    });
+    
+    // Cuando el usuario hace focus, asegurar que pueda ver el contenido
+    observacionGeneral.addEventListener('focus', function() {
+        // Scroll al final si hay contenido
+        if (this.value.length > 0) {
+            setTimeout(() => {
+                this.scrollTop = this.scrollHeight;
+            }, 100);
+        }
+        
+        // Asegurar que el scrollbar sea visible
+        this.style.overflowY = 'auto';
+    });
+    
+    // Mejorar el scroll en móviles cuando el usuario toca el campo
+    observacionGeneral.addEventListener('touchstart', function() {
+        this.style.overflowY = 'auto';
+        this.style.webkitOverflowScrolling = 'touch';
+    });
+    
+    console.log('✅ Campo de observación general configurado para móviles');
+}
 
 function configurarEventListeners() {
     if (!selectEvento || !selectRubrica || !btnGuardar) return;
