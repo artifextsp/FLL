@@ -40,49 +40,26 @@
     </div>
 
     <script type="module">
-        import { getUser, logout, getLoginUrl } from '../js/auth.js';
+        // ============================================
+        // VERIFICACIÓN DE AUTENTICACIÓN SIMPLIFICADA
+        // ============================================
         
-        console.log('📄 jurado/dashboard.html - Script cargado');
-        console.log('📄 jurado/dashboard.html - URL actual:', window.location.href);
-        console.log('📄 jurado/dashboard.html - Pathname:', window.location.pathname);
+        import { requireRole, logout } from '../js/auth.js';
         
-        // Esperar un momento para asegurar que localStorage esté sincronizado
-        (async () => {
-            console.log('⏳ jurado/dashboard - Esperando sincronización de localStorage...');
-            // Reducir el delay para evitar que redirija de vuelta si el usuario está cargando
-            await new Promise(resolve => setTimeout(resolve, 200));
+        // Verificar autenticación y rol de forma síncrona y directa
+        const user = requireRole('jurado');
+        
+        if (user) {
+            // Usuario autenticado correctamente como jurado
+            console.log('✅ Dashboard jurado - Usuario autenticado:', user.id);
             
-            const user = getUser();
-            console.log('🔍 jurado/dashboard - Usuario obtenido:', user);
-            console.log('🔍 jurado/dashboard - tipo_usuario:', user?.tipo_usuario);
-            console.log('🔍 jurado/dashboard - rol_activo:', user?.rol_activo);
-            
-            if (!user) {
-                console.error('❌ jurado/dashboard - No hay usuario, redirigiendo a login');
-                const loginUrl = getLoginUrl();
-                console.log('🔄 Redirigiendo a login:', loginUrl);
-                window.location.replace(loginUrl);
-                return;
-            }
-            
-            const tipoActivo = user.rol_activo || user.tipo_usuario;
-            console.log('🔍 jurado/dashboard - Tipo activo:', tipoActivo);
-            
-            if (tipoActivo !== 'jurado' && tipoActivo !== 'docente') {
-                console.error('❌ jurado/dashboard - Usuario no es jurado:', tipoActivo);
-                alert('No tienes permisos para acceder a esta página');
-                const loginUrl = getLoginUrl();
-                console.log('🔄 Redirigiendo a login:', loginUrl);
-                window.location.replace(loginUrl);
-                return;
-            }
-            
-            console.log('✅ jurado/dashboard - Usuario autenticado correctamente, mostrando dashboard');
+            // Configurar botón de logout
             document.getElementById('btn-logout').addEventListener('click', (e) => {
                 e.preventDefault();
                 logout();
             });
-        })();
+        }
+        // Si no hay usuario o no tiene el rol correcto, requireRole ya redirigió al login
     </script>
 </body>
 </html>

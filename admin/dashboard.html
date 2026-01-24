@@ -38,35 +38,26 @@
     </div>
 
     <script type="module">
-        import { getUser, logout, getLoginUrl } from '../js/auth.js';
+        // ============================================
+        // VERIFICACIÓN DE AUTENTICACIÓN SIMPLIFICADA
+        // ============================================
         
-        // Esperar un momento para asegurar que localStorage esté sincronizado
-        (async () => {
-            await new Promise(resolve => setTimeout(resolve, 50));
+        import { requireRole, logout } from '../js/auth.js';
+        
+        // Verificar autenticación y rol de forma síncrona y directa
+        const user = requireRole('admin');
+        
+        if (user) {
+            // Usuario autenticado correctamente como admin
+            console.log('✅ Dashboard admin - Usuario autenticado:', user.id);
             
-            const user = getUser();
-            console.log('🔍 admin/dashboard - Usuario:', user);
-            console.log('🔍 admin/dashboard - tipo_usuario:', user?.tipo_usuario);
-            console.log('🔍 admin/dashboard - rol_activo:', user?.rol_activo);
-            
-            if (!user) {
-                console.error('❌ admin/dashboard - No hay usuario, redirigiendo a login');
-                window.location.replace(getLoginUrl());
-            } else {
-                const tipoActivo = user.rol_activo || user.tipo_usuario;
-                if (tipoActivo !== 'admin' && tipoActivo !== 'super_admin') {
-                    console.error('❌ admin/dashboard - Usuario no es admin:', tipoActivo);
-                    alert('No tienes permisos para acceder a esta página');
-                    window.location.replace(getLoginUrl());
-                } else {
-                    console.log('✅ admin/dashboard - Usuario autenticado como admin, mostrando dashboard');
-                    document.getElementById('btn-logout').addEventListener('click', (e) => {
-                        e.preventDefault();
-                        logout();
-                    });
-                }
-            }
-        })();
+            // Configurar botón de logout
+            document.getElementById('btn-logout').addEventListener('click', (e) => {
+                e.preventDefault();
+                logout();
+            });
+        }
+        // Si no hay usuario o no tiene el rol correcto, requireRole ya redirigió al login
     </script>
 </body>
 </html>

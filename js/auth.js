@@ -1,414 +1,244 @@
 // ============================================
-// GESTIÓN DE AUTENTICACIÓN Y SESIÓN
-// Sistema FLL - Versión Blindada y Estable
-// ============================================
-
-import { CONFIG, Logger } from './config.js';
-
-// ============================================
-// CONSTANTES Y CONFIGURACIÓN
-// ============================================
-
-const STORAGE_KEY = 'pcre_user';
-const STORAGE_TIMESTAMP_KEY = 'pcre_user_timestamp';
-const SESSION_TIMEOUT = 24 * 60 * 60 * 1000; // 24 horas en milisegundos
-const BASE_PATH_CACHE_KEY = 'fll_base_path_cache';
-
-// ============================================
-// UTILIDADES DE SEGURIDAD
+// SISTEMA DE AUTENTICACIÓN FLL
+// Versión 2.0 - Simple, Robusto y Estable
 // ============================================
 
 /**
- * Sanitiza un string para prevenir inyección XSS
- * @param {string} str - String a sanitizar
- * @returns {string} - String sanitizado
+ * ANÁLISIS DEL PROBLEMA RAÍZ:
+ * 
+ * 1. Complejidad excesiva: Múltiples funciones async, delays, verificaciones redundantes
+ * 2. Race conditions: Verificaciones de localStorage con delays que causan inconsistencias
+ * 3. Lógica de redirección compleja: Múltiples métodos que interfieren entre sí
+ * 4. Base path cacheado: Puede causar problemas si cambia el contexto
+ * 5. Validaciones redundantes: Múltiples verificaciones que fallan en diferentes momentos
+ * 
+ * SOLUCIÓN: Sistema simple, síncrono donde sea posible, sin delays innecesarios,
+ * lógica de redirección directa, manejo claro de roles sin ambigüedades.
  */
-function sanitizeInput(str) {
-  if (typeof str !== 'string') return '';
-  return str
-    .replace(/[<>]/g, '') // Eliminar < y >
-    .replace(/javascript:/gi, '') // Eliminar javascript:
-    .replace(/on\w+=/gi, '') // Eliminar event handlers
-    .trim()
-    .substring(0, 255); // Limitar longitud
-}
-
-/**
- * Valida que un objeto de usuario tenga la estructura correcta
- * @param {object} user - Objeto de usuario a validar
- * @returns {boolean} - true si es válido
- */
-function isValidUser(user) {
-  if (!user || typeof user !== 'object') return false;
-  if (!user.id || typeof user.id !== 'string') return false;
-  if (!user.tipo_usuario || typeof user.tipo_usuario !== 'string') return false;
-  const validRoles = ['admin', 'jurado', 'estudiante', 'super_admin'];
-  if (!validRoles.includes(user.tipo_usuario)) return false;
-  return true;
-}
 
 // ============================================
-// GESTIÓN DE BASE PATH (CACHEADA Y ESTABLE)
+// CONSTANTES
 // ============================================
 
-let _basePathCache = null;
+const STORAGE_KEY = 'fll_user_session';
+const VALID_ROLES = ['admin', 'jurado', 'estudiante'];
+
+// ============================================
+// UTILIDADES BÁSICAS
+// ============================================
 
 /**
- * Base path de la app (ej. /FLL en Vercel, '' en dev). 
- * CACHEADA para evitar inconsistencias.
+ * Obtiene el base path de la aplicación
+ * Lógica simple y directa sin cache para evitar inconsistencias
  */
 function getBasePath() {
-  // Si ya está cacheada, retornar inmediatamente
-  if (_basePathCache !== null) {
-    return _basePathCache;
+  if (typeof window === 'undefined' || !window.location) return '';
+  
+  const pathname = window.location.pathname.toLowerCase();
+  const hostname = window.location.hostname.toLowerCase();
+  
+  // Si estamos en Vercel o el pathname contiene /fll, usar /FLL
+  if (hostname.includes('vercel.app') || pathname.startsWith('/fll')) {
+    return '/FLL';
   }
-
-  try {
-    const host = (typeof location !== 'undefined' && location.hostname) || '';
-    const p = ((typeof location !== 'undefined' && location.pathname) || '').toLowerCase();
-    
-    // Prioridad 1: Si el pathname contiene /fll, usar /FLL
-    if (p.startsWith('/fll')) {
-      _basePathCache = '/FLL';
-      console.log('🔍 getBasePath - Detectado /fll en pathname, cacheando /FLL');
-      return _basePathCache;
-    }
-    
-    // Prioridad 2: Si estamos en Vercel, usar /FLL
-    if (host.includes('vercel.app')) {
-      _basePathCache = '/FLL';
-      console.log('🔍 getBasePath - Detectado vercel.app, cacheando /FLL');
-      return _basePathCache;
-    }
-    
-    // Prioridad 3: Si estamos en root o index, no hay base path
-    if (p === '/' || p === '/index.html' || !p) {
-      _basePathCache = '';
-      console.log('🔍 getBasePath - Root o index, cacheando ""');
-      return _basePathCache;
-    }
-    
-    // Prioridad 4: Si el primer segmento es admin/jurado/equipo, no hay base path
-    const first = (p.match(/^\/([^/]+)/) || [])[1];
-    if (first === 'admin' || first === 'jurado' || first === 'equipo') {
-      _basePathCache = '';
-      console.log('🔍 getBasePath - Subcarpeta detectada (' + first + '), cacheando ""');
-      return _basePathCache;
-    }
-    
-    // Prioridad 5: Usar el primer segmento como base path
-    _basePathCache = first ? '/' + first : '';
-    console.log('🔍 getBasePath - Usando primer segmento como base, cacheando:', _basePathCache);
-    return _basePathCache;
-  } catch (e) {
-    console.error('❌ getBasePath - Error:', e);
-    _basePathCache = '';
-    return _basePathCache;
-  }
+  
+  return '';
 }
 
 /**
- * Forzar recálculo del base path (útil para testing)
+ * Construye la URL completa para una ruta relativa
  */
-export function resetBasePathCache() {
-  _basePathCache = null;
-}
-
-/** URL absoluta al login. Usar en todos los redirects a login. */
-export function getLoginUrl() {
+function buildUrl(path) {
   const base = getBasePath();
-  const url = (base || '') + '/index.html';
-  console.log('🔍 getLoginUrl - Base:', base, '→ URL:', url);
-  return url;
+  const basePath = base ? base + '/' : '/';
+  const cleanPath = path.startsWith('/') ? path.substring(1) : path;
+  return window.location.origin + basePath + cleanPath;
 }
 
 // ============================================
-// GESTIÓN DE USUARIO Y SESIÓN
+// GESTIÓN DE SESIÓN
 // ============================================
 
 /**
- * Obtener usuario de la sesión actual (con validación y timeout)
+ * Obtiene el usuario actual de la sesión
+ * Síncrono y simple - sin verificaciones complejas
  */
 export function getUser() {
   try {
-    const userStr = localStorage.getItem(STORAGE_KEY);
-    if (!userStr) {
-      console.log('🔍 getUser - No hay usuario en localStorage');
-      return null;
-    }
-
-    // Verificar timestamp de sesión
-    const timestamp = localStorage.getItem(STORAGE_TIMESTAMP_KEY);
-    if (timestamp) {
-      const age = Date.now() - parseInt(timestamp, 10);
-      if (age > SESSION_TIMEOUT) {
-        console.warn('⚠️ getUser - Sesión expirada, limpiando');
-        localStorage.removeItem(STORAGE_KEY);
-        localStorage.removeItem(STORAGE_TIMESTAMP_KEY);
-        return null;
-      }
-    }
-
-    const user = JSON.parse(userStr);
+    const sessionData = localStorage.getItem(STORAGE_KEY);
+    if (!sessionData) return null;
     
-    // Validar estructura del usuario
-    if (!isValidUser(user)) {
-      console.error('❌ getUser - Usuario inválido, limpiando');
-      localStorage.removeItem(STORAGE_KEY);
-      localStorage.removeItem(STORAGE_TIMESTAMP_KEY);
-      return null;
-    }
-
-    console.log('✅ getUser - Usuario válido:', user.id, user.tipo_usuario);
+    const user = JSON.parse(sessionData);
+    
+    // Validación básica
+    if (!user || !user.id || !user.role) return null;
+    if (!VALID_ROLES.includes(user.role)) return null;
+    
     return user;
   } catch (error) {
-    Logger.error('Error al obtener usuario:', error);
-    // Limpiar datos corruptos
+    // Si hay error, limpiar sesión corrupta
     localStorage.removeItem(STORAGE_KEY);
-    localStorage.removeItem(STORAGE_TIMESTAMP_KEY);
     return null;
   }
 }
 
 /**
- * Guardar usuario en la sesión (con sanitización y validación)
+ * Guarda el usuario en la sesión
+ * Simple y directo - sin verificaciones post-guardado que causan race conditions
  */
 export function setUser(userData) {
   try {
-    // Validar estructura
-    if (!isValidUser(userData)) {
-      console.error('❌ setUser - Datos de usuario inválidos');
+    // Validación básica
+    if (!userData || !userData.id || !userData.role) {
+      console.error('❌ setUser: Datos inválidos');
       return false;
     }
-
-    // Sanitizar datos críticos
-    const sanitizedUser = {
-      ...userData,
-      id: sanitizeInput(userData.id),
-      username: userData.username ? sanitizeInput(userData.username) : userData.id,
-      nombre: userData.nombre ? sanitizeInput(userData.nombre) : userData.id,
-      tipo_usuario: sanitizeInput(userData.tipo_usuario),
-      rol_activo: userData.rol_activo ? sanitizeInput(userData.rol_activo) : userData.tipo_usuario
-    };
-
-    // Guardar usuario y timestamp
-    localStorage.setItem(STORAGE_KEY, JSON.stringify(sanitizedUser));
-    localStorage.setItem(STORAGE_TIMESTAMP_KEY, Date.now().toString());
     
-    // Verificar que se guardó correctamente (prevenir race conditions)
-    const verify = getUser();
-    if (!verify || verify.id !== sanitizedUser.id) {
-      console.error('❌ setUser - Fallo en verificación post-guardado');
+    if (!VALID_ROLES.includes(userData.role)) {
+      console.error('❌ setUser: Rol inválido:', userData.role);
       return false;
     }
-
-    console.log('✅ setUser - Usuario guardado correctamente:', sanitizedUser.id);
+    
+    // Preparar objeto de sesión simple
+    const session = {
+      id: String(userData.id).trim(),
+      username: String(userData.username || userData.id).trim(),
+      role: String(userData.role).toLowerCase(),
+      nombre: String(userData.nombre || userData.id).trim(),
+      timestamp: Date.now()
+    };
+    
+    // Guardar directamente
+    localStorage.setItem(STORAGE_KEY, JSON.stringify(session));
+    
+    console.log('✅ Usuario guardado:', session.id, session.role);
     return true;
   } catch (error) {
-    Logger.error('Error al guardar usuario:', error);
+    console.error('❌ setUser: Error:', error);
     return false;
   }
 }
 
 /**
- * Requerir autenticación (redirige si no está autenticado)
- * VERSIÓN BLINDADA con validación robusta
+ * Limpia la sesión actual
  */
-export function requireAuth(tipoRequerido = null) {
+export function clearSession() {
+  try {
+    localStorage.removeItem(STORAGE_KEY);
+    console.log('✅ Sesión limpiada');
+  } catch (error) {
+    console.error('❌ Error al limpiar sesión:', error);
+  }
+}
+
+/**
+ * Cierra sesión y redirige al login
+ */
+export function logout() {
+  clearSession();
+  const loginUrl = buildUrl('index.html');
+  window.location.href = loginUrl;
+}
+
+// ============================================
+// AUTENTICACIÓN Y AUTORIZACIÓN
+// ============================================
+
+/**
+ * Verifica si el usuario está autenticado
+ */
+export function isAuthenticated() {
+  return getUser() !== null;
+}
+
+/**
+ * Requiere autenticación - redirige al login si no hay sesión
+ */
+export function requireAuth() {
   const user = getUser();
-  console.log('🔍 requireAuth - Verificando autenticación. Tipo requerido:', tipoRequerido);
-  console.log('🔍 requireAuth - Usuario:', user ? { id: user.id, tipo: user.tipo_usuario } : null);
-  
-  if (!user || !user.id) {
-    console.error('❌ requireAuth - No hay usuario, redirigiendo a login');
-    // Usar replace para evitar que el usuario pueda volver con el botón atrás
-    window.location.replace(getLoginUrl());
+  if (!user) {
+    const loginUrl = buildUrl('index.html');
+    window.location.href = loginUrl;
     return null;
   }
-  
-  const tipoActivo = user.rol_activo || user.tipo_usuario;
-  console.log('🔍 requireAuth - Tipo activo:', tipoActivo);
-  
-  if (tipoRequerido) {
-    // Casos especiales de permisos cruzados
-    if (user.tipo_usuario === 'admin' && tipoRequerido === 'docente') {
-      console.log('✅ requireAuth - Admin accediendo como docente (permiso especial)');
-      return user;
-    }
-    if (user.tipo_usuario === 'super_admin' && (tipoRequerido === 'admin' || tipoRequerido === 'super_admin')) {
-      console.log('✅ requireAuth - Super admin accediendo como admin (permiso especial)');
-      return user;
-    }
-    
-    // Verificación normal de roles (case-insensitive para mayor robustez)
-    const tipoActivoLower = tipoActivo.toLowerCase();
-    const tipoRequeridoLower = tipoRequerido.toLowerCase();
-    
-    if (tipoActivoLower !== tipoRequeridoLower) {
-      console.error(`❌ requireAuth - Permiso denegado. Requerido: ${tipoRequerido}, tu rol: ${tipoActivo}`);
-      alert(`No tienes permisos para acceder a esta página.\nRequerido: ${tipoRequerido}\nTu rol: ${tipoActivo}`);
-      setTimeout(() => { 
-        window.location.replace(getLoginUrl()); 
-      }, 1500);
-      return null;
-    }
-  }
-  
-  console.log('✅ requireAuth - Autenticación exitosa');
   return user;
 }
 
 /**
- * Cerrar sesión (limpieza completa y segura)
+ * Requiere un rol específico - redirige al login si no tiene el rol
  */
-export function logout() {
-  try {
-    console.log('🔍 logout - Iniciando cierre de sesión');
-    
-    // Limpiar usuario
-    localStorage.removeItem(STORAGE_KEY);
-    localStorage.removeItem(STORAGE_TIMESTAMP_KEY);
-    
-    // Limpiar todas las claves relacionadas con pcre_
-    const keys = Object.keys(localStorage);
-    keys.forEach(key => { 
-      if (key.startsWith('pcre_')) {
-        localStorage.removeItem(key);
-      }
-    });
-    
-    // Verificar que se limpió correctamente
-    if (getUser()) {
-      // Si aún hay usuario, limpiar todo
-      localStorage.clear();
-    }
-    
-    console.log('✅ logout - Sesión cerrada correctamente');
-  } catch (e) { 
-    console.error('❌ logout - Error al cerrar sesión:', e);
-    // Aun así, intentar limpiar todo
-    try {
-      localStorage.clear();
-    } catch (e2) {
-      console.error('❌ logout - Error crítico al limpiar:', e2);
-    }
+export function requireRole(requiredRole) {
+  const user = requireAuth();
+  if (!user) return null;
+  
+  if (user.role !== requiredRole.toLowerCase()) {
+    console.error(`❌ Rol requerido: ${requiredRole}, rol actual: ${user.role}`);
+    logout();
+    return null;
   }
   
-  // Redirigir usando replace para evitar botón atrás
-  window.location.replace(getLoginUrl());
+  return user;
 }
 
-/**
- * Verificar si un usuario tiene múltiples roles disponibles
- * NOTA: En FLL simplificamos esta función (no hay tablas de Ludens)
- */
-export async function tieneMultiplesRoles(user) {
-  if (!user || !user.id) return false;
-  
-  // En FLL, los usuarios solo tienen un rol asignado directamente
-  // Solo verificamos si es super_admin que puede acceder como admin
-  if (user.tipo_usuario === 'super_admin' && user.colegio_id) {
-    return true;
-  }
-  
-  return false;
-}
+// ============================================
+// REDIRECCIÓN POR ROL
+// ============================================
 
 /**
- * Redirigir según tipo de usuario
- * VERSIÓN BLINDADA con manejo robusto de errores y sincronización
+ * Obtiene la URL del dashboard según el rol del usuario
+ * Lógica simple y directa
  */
-export async function redirigirPorTipoUsuario() {
-  try {
-    // Esperar un tick para asegurar que localStorage esté sincronizado
-    await new Promise(resolve => setTimeout(resolve, 50));
+export function getDashboardUrl(role) {
+  const roleLower = String(role).toLowerCase();
+  
+  switch (roleLower) {
+    case 'admin':
+    case 'super_admin':
+      return buildUrl('admin/dashboard.html');
     
-    const user = getUser();
-    if (!user) {
-      console.error('❌ redirigirPorTipoUsuario: No hay usuario después de espera');
-      return getLoginUrl();
-    }
+    case 'jurado':
+    case 'docente':
+      return buildUrl('jurado/dashboard.html');
     
-    console.log('🔍 redirigirPorTipoUsuario - Usuario:', user);
-    console.log('🔍 redirigirPorTipoUsuario - tipo_usuario:', user.tipo_usuario);
-    console.log('🔍 redirigirPorTipoUsuario - rol_activo:', user.rol_activo);
+    case 'estudiante':
+      return buildUrl('equipo/dashboard.html');
     
-    // Verificar primera vez (si existe)
-    if (user.primera_vez) {
-      console.log('⚠️ Primera vez, redirigiendo a cambiar_password');
-      const base = getBasePath();
-      return (base || '') + '/cambiar_password.html';
-    }
-    
-    // Verificar múltiples roles (async)
-    const multiplesRoles = await tieneMultiplesRoles(user);
-    if (multiplesRoles && !user.rol_activo) {
-      console.log('⚠️ Múltiples roles, redirigiendo a seleccionar_rol');
-      const base = getBasePath();
-      return (base || '') + '/seleccionar_rol.html';
-    }
-    
-    const tipoActivo = user.rol_activo || user.tipo_usuario;
-    console.log('🔍 Tipo activo:', tipoActivo);
-
-    // Validación especial para admin (solo si es admin, no super_admin)
-    if (tipoActivo === 'admin' && user.tipo_usuario === 'admin' && !user.colegio_id) {
-      console.error('❌ Admin sin colegio_id');
-      alert('Tu cuenta no tiene colegio asignado. Contacta al administrador.');
-      setTimeout(() => logout(), 2000);
-      return getLoginUrl();
-    }
-
-    // Construir URL de destino
-    const base = getBasePath();
-    const b = base ? base + '/' : '/';
-    console.log('🔍 Base path:', base, '→ URL base:', b);
-    
-    let destino = '';
-    const tipoActivoLower = tipoActivo.toLowerCase();
-    
-    switch (tipoActivoLower) {
-      case 'estudiante':
-        destino = b + 'equipo/dashboard.html';
-        console.log('✅ Redirigiendo ESTUDIANTE a:', destino);
-        break;
-      case 'docente':
-      case 'jurado':
-        destino = b + 'jurado/dashboard.html';
-        console.log('✅ Redirigiendo JURADO a:', destino);
-        break;
-      case 'admin':
-      case 'super_admin':
-        destino = b + 'admin/dashboard.html';
-        console.log('✅ Redirigiendo ADMIN a:', destino);
-        break;
-      default:
-        console.error('❌ Tipo no reconocido:', tipoActivo);
-        destino = getLoginUrl();
-    }
-    
-    console.log('🚀 Redirigiendo a:', destino);
-    
-    // Retornar la URL en lugar de redirigir aquí
-    // Esto permite que el código que llama maneje la redirección de forma síncrona
-    return destino;
-    
-  } catch (error) {
-    console.error('❌ redirigirPorTipoUsuario - Error crítico:', error);
-    // En caso de error, retornar URL de login
-    return getLoginUrl();
+    default:
+      return buildUrl('index.html');
   }
 }
 
 /**
- * Función auxiliar para mostrar alertas
+ * Redirige al usuario a su dashboard según su rol
+ * Simple y directo - sin async innecesario
  */
-function mostrarAlerta(mensaje, tipo = 'info') {
-  alert(mensaje); // Implementación temporal
+export function redirectToDashboard() {
+  const user = getUser();
+  if (!user) {
+    logout();
+    return;
+  }
+  
+  const dashboardUrl = getDashboardUrl(user.role);
+  console.log('🚀 Redirigiendo a:', dashboardUrl);
+  
+  // Redirección simple y directa
+  window.location.href = dashboardUrl;
+}
+
+// ============================================
+// FUNCIONES DE UTILIDAD PARA COMPATIBILIDAD
+// ============================================
+
+/**
+ * Obtiene la URL del login (para compatibilidad con código existente)
+ */
+export function getLoginUrl() {
+  return buildUrl('index.html');
 }
 
 /**
- * Exportar getBasePath para uso externo si es necesario
+ * Obtiene el base path exportado (para compatibilidad)
  */
 export function getBasePathExported() {
   return getBasePath();
