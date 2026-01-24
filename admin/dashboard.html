@@ -9,9 +9,11 @@
 <body>
     <nav class="nav">
         <div class="container nav-list">
-            <a href="#" class="nav-link active">Dashboard</a>
-            <a href="#" class="nav-link">Eventos</a>
-            <a href="#" class="nav-link">Equipos</a>
+            <a href="dashboard.html" class="nav-link active">Dashboard</a>
+            <a href="eventos.html" class="nav-link">Eventos</a>
+            <a href="equipos.html" class="nav-link">Equipos</a>
+            <a href="jurados.html" class="nav-link">Jurados</a>
+            <a href="rubricas.html" class="nav-link">Rúbricas</a>
             <a href="#" id="btn-logout" class="nav-link" style="margin-left: auto;">Salir</a>
         </div>
     </nav>
@@ -20,18 +22,18 @@
         <h1 class="mb-lg">Panel de Administración</h1>
         
         <div class="grid grid-3">
-            <div class="card">
-                <h3>Eventos Activos</h3>
-                <p class="font-size-xl">0</p>
-            </div>
-            <div class="card">
-                <h3>Equipos</h3>
-                <p class="font-size-xl">0</p>
-            </div>
-            <div class="card">
-                <h3>Jurados</h3>
-                <p class="font-size-xl">0</p>
-            </div>
+            <a href="eventos.html" class="card" style="text-decoration: none; color: inherit; transition: transform 0.2s;">
+                <h3>📅 Eventos</h3>
+                <p class="text-secondary mt-sm">Gestionar torneos y fechas</p>
+            </a>
+            <a href="equipos.html" class="card" style="text-decoration: none; color: inherit; transition: transform 0.2s;">
+                <h3>🤖 Equipos</h3>
+                <p class="text-secondary mt-sm">Gestionar participantes</p>
+            </a>
+            <a href="jurados.html" class="card" style="text-decoration: none; color: inherit; transition: transform 0.2s;">
+                <h3>👨‍⚖️ Jurados</h3>
+                <p class="text-secondary mt-sm">Asignar jueces</p>
+            </a>
         </div>
     </div>
 
@@ -39,14 +41,12 @@
         import { requireAuth, logout } from '../js/auth.js';
         
         // Verificar autenticación
-        const user = requireAuth('admin');
+        requireAuth('admin');
         
-        if (user) {
-            document.getElementById('btn-logout').addEventListener('click', (e) => {
-                e.preventDefault();
-                logout();
-            });
-        }
+        document.getElementById('btn-logout').addEventListener('click', (e) => {
+            e.preventDefault();
+            logout();
+        });
     </script>
 </body>
 </html>
