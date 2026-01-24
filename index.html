@@ -128,20 +128,55 @@
                 
                 console.log('✅ Usuario guardado y verificado. Redirigiendo...');
                 
-                // Obtener URL de destino
-                const destino = await redirigirPorTipoUsuario();
-                console.log('🎯 URL de destino obtenida:', destino);
-                
-                // CRÍTICO: Redirigir inmediatamente sin más código después
-                if (destino) {
-                    console.log('🚀 REDIRIGIENDO AHORA a:', destino);
-                    // Forzar navegación inmediata
-                    window.location.href = destino;
-                    // NO ejecutar más código después de esto
-                    return;
-                } else {
-                    throw new Error('No se pudo determinar la URL de destino');
+                // Determinar destino directamente (sin await para evitar problemas)
+                const user = getUser();
+                if (!user) {
+                    throw new Error('Usuario no encontrado después de guardar');
                 }
+                
+                const tipoActivo = user.rol_activo || user.tipo_usuario;
+                console.log('🔍 Tipo activo para redirección:', tipoActivo);
+                
+                // Construir URL de destino directamente
+                let destino = '';
+                const base = window.location.pathname.toLowerCase().startsWith('/fll') ? '/FLL' : 
+                            (window.location.hostname.includes('vercel.app') ? '/FLL' : '');
+                const b = base ? base + '/' : '/';
+                
+                switch (tipoActivo.toLowerCase()) {
+                    case 'estudiante':
+                        destino = b + 'equipo/dashboard.html';
+                        break;
+                    case 'docente':
+                    case 'jurado':
+                        destino = b + 'jurado/dashboard.html';
+                        break;
+                    case 'admin':
+                    case 'super_admin':
+                        destino = b + 'admin/dashboard.html';
+                        break;
+                    default:
+                        destino = base + '/index.html';
+                }
+                
+                console.log('🎯 URL de destino construida:', destino);
+                console.log('🚀 REDIRIGIENDO INMEDIATAMENTE...');
+                
+                // Forzar navegación inmediata - múltiples métodos para asegurar que funcione
+                try {
+                    window.location.href = destino;
+                } catch (e) {
+                    console.error('Error con href, intentando replace:', e);
+                    window.location.replace(destino);
+                }
+                
+                // Fallback adicional después de un breve delay
+                setTimeout(() => {
+                    if (window.location.href.indexOf(destino.split('/').pop()) === -1) {
+                        console.warn('⚠️ Redirección no completada, forzando...');
+                        window.location.replace(destino);
+                    }
+                }, 500);
                 
             } catch (e) {
                 console.error('❌ Error en login:', e);
