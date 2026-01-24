@@ -42,6 +42,12 @@
             border-radius: var(--border-radius-lg);
             width: 90%;
             max-width: 500px;
+            max-height: 90vh;
+            overflow-y: auto;
+        }
+        
+        .modal-content.large {
+            max-width: 800px;
         }
         
         .filters {
@@ -93,6 +99,12 @@
                     <option value="">Cargando eventos...</option>
                 </select>
             </div>
+            <div style="flex: 1; min-width: 250px;">
+                <input type="text" 
+                       id="filtro-busqueda" 
+                       class="form-input" 
+                       placeholder="🔍 Buscar equipo por nombre...">
+            </div>
         </div>
 
         <div class="card table-responsive">
@@ -110,6 +122,20 @@
                     <!-- Se llena dinámicamente -->
                 </tbody>
             </table>
+        </div>
+    </div>
+
+    <!-- Modal Ver Detalles -->
+    <div id="modal-detalles-equipo" class="modal hidden">
+        <div class="modal-content" style="max-width: 800px; max-height: 90vh; overflow-y: auto;">
+            <div style="display: flex; justify-content: space-between; align-items: center; margin-bottom: 20px;">
+                <h2 id="titulo-detalles-equipo" style="margin: 0;">Detalles del Equipo</h2>
+                <button id="btn-cerrar-detalles" class="btn-icon" style="font-size: 1.5rem;">✕</button>
+            </div>
+            
+            <div id="contenido-detalles-equipo">
+                <!-- Se llena dinámicamente -->
+            </div>
         </div>
     </div>
 
