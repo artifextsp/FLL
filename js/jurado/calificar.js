@@ -547,14 +547,20 @@ async function guardarCalificacion() {
             const nivel = nivelesPorAspecto[cal.aspecto_id].find(n => n.nivel === cal.nivel);
             
             // Verificar si ya existe calificación
-            const { data: existente } = await supabase
+            // Usar maybeSingle() en lugar de single() para evitar error 406 cuando no hay resultados
+            const { data: existente, error: errExistente } = await supabase
                 .from('calificaciones')
                 .select('id')
                 .eq('jurado_id', jurado.id)
                 .eq('equipo_id', equipoSeleccionado)
                 .eq('rubrica_id', rubricaSeleccionada)
                 .eq('aspecto_id', cal.aspecto_id)
-                .single();
+                .maybeSingle(); // maybeSingle() no lanza error si no hay resultados
+            
+            // Ignorar errores de consulta si no hay resultados (es normal)
+            if (errExistente && errExistente.code !== 'PGRST116') {
+                console.warn('Advertencia al verificar calificación existente:', errExistente);
+            }
             
             const datosCalificacion = {
                 jurado_id: jurado.id,
