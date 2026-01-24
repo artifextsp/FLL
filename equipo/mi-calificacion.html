@@ -1,0 +1,53 @@
+<!DOCTYPE html>
+<html lang="es">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>FLL - Mis Calificaciones</title>
+    <link rel="stylesheet" href="../css/styles.css">
+</head>
+<body>
+    <nav class="nav">
+        <div class="container nav-list">
+            <a href="dashboard.html" class="nav-link">Dashboard</a>
+            <a href="#" class="nav-link active">Mis Calificaciones</a>
+            <a href="resultados.html" class="nav-link">Resultados Generales</a>
+            <a href="#" id="btn-logout" class="nav-link" style="margin-left: auto;">Salir</a>
+        </div>
+    </nav>
+
+    <div class="container">
+        <h1 class="mb-lg">📋 Mis Calificaciones Detalladas</h1>
+        
+        <div class="card mb-md">
+            <p class="text-secondary">
+                Selecciona un evento para ver todas las calificaciones y observaciones que los jurados han realizado sobre tu equipo.
+            </p>
+        </div>
+        
+        <div id="eventos-container">
+            <!-- Se llena dinámicamente -->
+        </div>
+        
+        <div id="calificaciones-section" style="margin-top: 32px;">
+            <div id="calificaciones-container">
+                <!-- Se llena dinámicamente cuando se selecciona un evento -->
+            </div>
+        </div>
+    </div>
+
+    <script type="module">
+        import { getUser, logout, getLoginUrl } from '../js/auth.js';
+        const user = getUser();
+        if (!user) {
+            window.location.href = getLoginUrl();
+        } else {
+            document.getElementById('btn-logout').addEventListener('click', (e) => {
+                e.preventDefault();
+                logout();
+            });
+        }
+    </script>
+    <script type="module" src="../js/equipo/mi-calificacion.js"></script>
+</body>
+</html>

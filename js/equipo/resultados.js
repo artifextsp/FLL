@@ -135,7 +135,7 @@ function procesarResultados(equipos, rubricas, calificaciones) {
         resultados[equipo.id] = {
             equipo: equipo,
             rubricas: {},
-            promedioGeneral: 0,
+            sumaGeneral: 0, // Cambiado de promedioGeneral a sumaGeneral
             totalCalificaciones: 0
         };
         
@@ -152,26 +152,25 @@ function procesarResultados(equipos, rubricas, calificaciones) {
                         porAspecto[cal.aspecto_id] = {
                             aspecto: cal.aspectos_rubrica,
                             calificaciones: [],
-                            promedio: 0
+                            suma: 0 // Cambiado de promedio a suma
                         };
                     }
-                    porAspecto[cal.aspecto_id].calificaciones.push(cal.puntuacion);
+                    porAspecto[cal.aspecto_id].calificaciones.push(cal);
                 });
                 
-                // Calcular promedios por aspecto
+                // Calcular suma por aspecto (suma de todas las puntuaciones)
                 Object.keys(porAspecto).forEach(aspectoId => {
                     const aspecto = porAspecto[aspectoId];
-                    aspecto.promedio = calcularPromedio(aspecto.calificaciones);
+                    aspecto.suma = aspecto.calificaciones.reduce((sum, cal) => sum + (cal.puntuacion || 0), 0);
                 });
                 
-                // Calcular promedio de la rúbrica
-                const puntuaciones = calRubrica.map(c => c.puntuacion);
-                const promedioRubrica = calcularPromedio(puntuaciones);
+                // Calcular suma de la rúbrica (suma de todas las puntuaciones)
+                const sumaRubrica = calRubrica.reduce((sum, cal) => sum + (cal.puntuacion || 0), 0);
                 
                 resultados[equipo.id].rubricas[rubrica.id] = {
                     rubrica: rubrica,
                     aspectos: porAspecto,
-                    promedio: promedioRubrica,
+                    suma: sumaRubrica, // Cambiado de promedio a suma
                     calificaciones: calRubrica
                 };
                 
@@ -179,10 +178,10 @@ function procesarResultados(equipos, rubricas, calificaciones) {
             }
         });
         
-        // Calcular promedio general
-        const promediosRubricas = Object.values(resultados[equipo.id].rubricas)
-            .map(r => r.promedio);
-        resultados[equipo.id].promedioGeneral = calcularPromedio(promediosRubricas);
+        // Calcular suma general (suma de todas las rúbricas)
+        const sumasRubricas = Object.values(resultados[equipo.id].rubricas)
+            .map(r => r.suma);
+        resultados[equipo.id].sumaGeneral = sumasRubricas.reduce((sum, s) => sum + s, 0);
     });
     
     return resultados;
@@ -194,9 +193,9 @@ function renderizarResultados(resultadosProcesados, rubricas) {
     
     container.innerHTML = '';
     
-    // Convertir a array y ordenar por promedio general
+    // Convertir a array y ordenar por suma general (de mayor a menor)
     const equiposOrdenados = Object.values(resultadosProcesados)
-        .sort((a, b) => b.promedioGeneral - a.promedioGeneral);
+        .sort((a, b) => b.sumaGeneral - a.sumaGeneral);
     
     if (equiposOrdenados.length === 0) {
         container.innerHTML = '<p class="text-center text-secondary">No hay calificaciones registradas aún.</p>';
@@ -215,7 +214,7 @@ function renderizarResultados(resultadosProcesados, rubricas) {
             <tr style="background: var(--surface);">
                 <th style="padding: 12px; text-align: left; width: 50px;">#</th>
                 <th style="padding: 12px; text-align: left;">Equipo</th>
-                <th style="padding: 12px; text-align: center;">Promedio</th>
+                <th style="padding: 12px; text-align: center;">Total Puntos</th>
                 <th style="padding: 12px; text-align: center;">Calificaciones</th>
             </tr>
         </thead>
@@ -236,7 +235,7 @@ function renderizarResultados(resultadosProcesados, rubricas) {
             <td style="padding: 12px; font-weight: bold; font-size: 1.2rem;">${medalla || (index + 1)}</td>
             <td style="padding: 12px;"><strong>${resultado.equipo.nombre}</strong></td>
             <td style="padding: 12px; text-align: center; font-size: 1.1rem; font-weight: bold; color: var(--primary-color);">
-                ${redondear(resultado.promedioGeneral, 1)}
+                ${resultado.sumaGeneral}
             </td>
             <td style="padding: 12px; text-align: center;">${resultado.totalCalificaciones}</td>
         `;
@@ -268,9 +267,9 @@ function renderizarResultados(resultadosProcesados, rubricas) {
             <div style="background: var(--surface); padding: 12px; border-radius: 8px; margin-bottom: 16px;">
                 <div style="display: flex; justify-content: space-around; text-align: center;">
                     <div>
-                        <div style="font-size: 0.85rem; color: var(--text-secondary);">Promedio General</div>
+                        <div style="font-size: 0.85rem; color: var(--text-secondary);">Total Puntos</div>
                         <div style="font-size: 1.5rem; font-weight: bold; color: var(--primary-color);">
-                            ${redondear(resultado.promedioGeneral, 1)}
+                            ${resultado.sumaGeneral}
                         </div>
                     </div>
                     <div>
@@ -297,7 +296,7 @@ function renderizarResultados(resultadosProcesados, rubricas) {
                 <div style="display: flex; justify-content: space-between; align-items: center; margin-bottom: 8px;">
                     <strong>${rubricaData.rubrica.nombre}</strong>
                     <span style="font-weight: bold; color: var(--success-color);">
-                        Promedio: ${redondear(rubricaData.promedio, 1)}
+                        Total: ${rubricaData.suma} pts
                     </span>
                 </div>
                 
@@ -317,7 +316,7 @@ function renderizarResultados(resultadosProcesados, rubricas) {
                 aspectoP.style.cssText = 'padding: 8px; background: white; border-radius: 6px; margin-bottom: 6px; font-size: 0.9rem;';
                 aspectoP.innerHTML = `
                     <strong>${aspectoData.aspecto.nombre}:</strong> 
-                    ${redondear(aspectoData.promedio, 1)} pts
+                    ${aspectoData.suma} pts
                     <span style="color: var(--text-secondary); font-size: 0.85rem;">
                         (${aspectoData.calificaciones.length} calificación${aspectoData.calificaciones.length > 1 ? 'es' : ''})
                     </span>
