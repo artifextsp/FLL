@@ -1,0 +1,18 @@
+{
+  "name": "fll-calificacion",
+  "version": "0.1.0",
+  "description": "Sistema de calificación para equipos de robótica FLL",
+  "type": "module",
+  "scripts": {
+    "dev": "vite",
+    "build": "vite build",
+    "preview": "vite preview"
+  },
+  "dependencies": {
+    "@supabase/supabase-js": "^2.39.0",
+    "chart.js": "^4.4.0"
+  },
+  "devDependencies": {
+    "vite": "^5.0.0"
+  }
+}
