@@ -1,4 +1,4 @@
-import { querySupabase, insertSupabase, updateSupabase, deleteSupabase, supabase } from '../supabase.js';
+import { querySupabase, insertSupabase, updateSupabase, deleteSupabase, deleteHardSupabase, supabase } from '../supabase.js';
 import { mostrarAlerta, confirmarAccion } from '../utils.js';
 
 // Estado local
@@ -263,13 +263,8 @@ async function guardarAspecto() {
             await updateSupabase('aspectos_rubrica', aspectoEditando.id, { nombre, descripcion });
             aspectoId = aspectoEditando.id;
             
-            // Eliminar niveles antiguos
-            const nivelesAntiguos = await querySupabase('niveles_aspecto', {
-                filtros: [{ campo: 'aspecto_id', valor: aspectoId }]
-            });
-            for (const nivel of nivelesAntiguos || []) {
-                await deleteSupabase('niveles_aspecto', nivel.id);
-            }
+            // Hard delete de niveles antiguos (soft delete deja UNIQUE violado al insertar nuevos)
+            await deleteHardSupabase('niveles_aspecto', { campo: 'aspecto_id', valor: aspectoId });
         } else {
             // Crear nuevo aspecto
             const maxOrden = await querySupabase('aspectos_rubrica', {
@@ -285,19 +280,6 @@ async function guardarAspecto() {
                 orden
             });
             aspectoId = nuevoAspecto[0].id;
-        }
-        
-        // Eliminar niveles antiguos y crear nuevos
-        if (aspectoEditando) {
-            // Obtener niveles existentes
-            const nivelesAntiguos = await querySupabase('niveles_aspecto', {
-                filtros: [{ campo: 'aspecto_id', valor: aspectoId }]
-            });
-            
-            // Eliminar niveles antiguos
-            for (const nivel of nivelesAntiguos || []) {
-                await deleteSupabase('niveles_aspecto', nivel.id);
-            }
         }
         
         // Crear niveles nuevos

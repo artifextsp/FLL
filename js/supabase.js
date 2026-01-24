@@ -116,3 +116,29 @@ export async function deleteSupabase(tabla, id) {
     throw error;
   }
 }
+
+/**
+ * Borrado real (hard delete). Usar solo cuando sea necesario
+ * (ej. niveles_aspecto al reemplazar: soft delete deja UNIQUE violado).
+ */
+export async function deleteHardSupabase(tabla, opciones) {
+  try {
+    let query = supabase.from(tabla).delete();
+    if (opciones.campo && opciones.valor !== undefined) {
+      query = query.eq(opciones.campo, opciones.valor);
+    } else if (opciones.id) {
+      query = query.eq('id', opciones.id);
+    } else {
+      throw new Error('deleteHardSupabase: falta campo+valor o id');
+    }
+    const { error } = await query;
+    if (error) {
+      Logger.error('Error en hard delete Supabase:', error);
+      throw error;
+    }
+    return;
+  } catch (error) {
+    Logger.error('Error al eliminar registro (hard):', error);
+    throw error;
+  }
+}
