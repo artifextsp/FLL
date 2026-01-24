@@ -22,7 +22,8 @@ export default defineConfig({
         juradoDashboard: resolve(__dirname, 'jurado/dashboard.html'),
         juradoCalificar: resolve(__dirname, 'jurado/calificar.html'),
         equipoDashboard: resolve(__dirname, 'equipo/dashboard.html'),
-        equipoResultados: resolve(__dirname, 'equipo/resultados.html')
+        equipoResultados: resolve(__dirname, 'equipo/resultados.html'),
+        equipoMiCalificacion: resolve(__dirname, 'equipo/mi-calificacion.html')
       },
       output: {
         // Asegurar que los módulos se empaqueten correctamente
