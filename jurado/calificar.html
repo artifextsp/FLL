@@ -1,0 +1,313 @@
+<!DOCTYPE html>
+<html lang="es">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no">
+    <title>FLL - Calificar Equipos</title>
+    <link rel="stylesheet" href="../css/styles.css">
+    <style>
+        /* Optimización móvil extrema */
+        body { 
+            font-size: 16px; /* Prevenir zoom en iOS */
+            -webkit-text-size-adjust: 100%;
+        }
+        
+        .select-container {
+            margin-bottom: 20px;
+        }
+        
+        .select-container label {
+            display: block;
+            margin-bottom: 8px;
+            font-weight: 600;
+            font-size: 1rem;
+        }
+        
+        .form-select {
+            width: 100%;
+            padding: 14px;
+            font-size: 1rem;
+            min-height: 50px; /* Más grande para móvil */
+        }
+        
+        /* Cards de aspecto */
+        .aspecto-card {
+            background: white;
+            border: 2px solid var(--border);
+            border-radius: 12px;
+            padding: 16px;
+            margin-bottom: 20px;
+            box-shadow: 0 2px 4px rgba(0,0,0,0.1);
+        }
+        
+        .aspecto-header {
+            margin-bottom: 16px;
+            padding-bottom: 12px;
+            border-bottom: 2px solid var(--surface);
+        }
+        
+        .aspecto-header h3 {
+            margin: 0;
+            font-size: 1.1rem;
+            color: var(--primary-color);
+        }
+        
+        /* Niveles como radio buttons grandes */
+        .niveles-container {
+            display: flex;
+            flex-direction: column;
+            gap: 12px;
+            margin-bottom: 16px;
+        }
+        
+        .nivel-option {
+            display: block;
+            border: 2px solid var(--border);
+            border-radius: 10px;
+            padding: 14px;
+            cursor: pointer;
+            transition: all 0.2s;
+            background: white;
+        }
+        
+        .nivel-option:hover {
+            border-color: var(--primary-color);
+            background: #f0f7ff;
+        }
+        
+        .nivel-option.selected {
+            border-color: var(--primary-color);
+            background: #e3f2fd;
+            box-shadow: 0 0 0 3px rgba(33, 150, 243, 0.1);
+        }
+        
+        .nivel-option input[type="radio"] {
+            display: none; /* Ocultar radio nativo */
+        }
+        
+        .nivel-header {
+            display: flex;
+            align-items: center;
+            gap: 10px;
+            margin-bottom: 8px;
+        }
+        
+        .nivel-numero {
+            background: var(--primary-color);
+            color: white;
+            width: 32px;
+            height: 32px;
+            border-radius: 50%;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            font-weight: bold;
+            font-size: 1rem;
+            flex-shrink: 0;
+        }
+        
+        .nivel-etiqueta {
+            font-weight: 600;
+            font-size: 0.95rem;
+            flex: 1;
+        }
+        
+        .nivel-puntos {
+            background: var(--success-color);
+            color: white;
+            padding: 4px 10px;
+            border-radius: 12px;
+            font-size: 0.85rem;
+            font-weight: 600;
+        }
+        
+        .nivel-descripcion {
+            font-size: 0.9rem;
+            color: var(--text-secondary);
+            line-height: 1.4;
+            margin-top: 6px;
+        }
+        
+        .observacion-container {
+            margin-top: 12px;
+        }
+        
+        .observacion-container textarea {
+            width: 100%;
+            padding: 12px;
+            border: 2px solid var(--border);
+            border-radius: 8px;
+            font-size: 0.95rem;
+            min-height: 80px;
+            resize: vertical;
+        }
+        
+        /* Botón guardar grande y fijo */
+        .btn-guardar-fixed {
+            position: fixed;
+            bottom: 0;
+            left: 0;
+            right: 0;
+            background: white;
+            padding: 16px;
+            box-shadow: 0 -2px 10px rgba(0,0,0,0.1);
+            z-index: 1000;
+        }
+        
+        .btn-guardar-fixed .btn {
+            width: 100%;
+            padding: 16px;
+            font-size: 1.1rem;
+            font-weight: 600;
+            min-height: 56px; /* Muy grande para móvil */
+        }
+        
+        /* Espacio para el botón fijo */
+        .content-wrapper {
+            padding-bottom: 100px; /* Espacio para botón fijo */
+        }
+        
+        /* Filtro de equipos */
+        .filtro-equipo-container {
+            margin-bottom: 16px;
+        }
+        
+        .equipos-lista {
+            max-height: 200px;
+            overflow-y: auto;
+            border: 2px solid var(--border);
+            border-radius: 8px;
+            padding: 8px;
+        }
+        
+        .equipo-item {
+            margin-bottom: 8px;
+        }
+        
+        .equipo-card {
+            padding: 14px;
+            border: 2px solid var(--border);
+            border-radius: 8px;
+            background: white;
+            cursor: pointer;
+            transition: all 0.2s;
+        }
+        
+        .equipo-card:hover,
+        .equipo-card:active {
+            border-color: var(--primary-color);
+            background: #f0f7ff;
+        }
+        
+        /* Sección de calificación */
+        .seccion-calificacion {
+            margin-top: 24px;
+        }
+        
+        .info-box {
+            background: #e3f2fd;
+            border-left: 4px solid var(--primary-color);
+            padding: 12px;
+            border-radius: 8px;
+            margin-bottom: 20px;
+        }
+        
+        .info-box strong {
+            display: block;
+            margin-bottom: 4px;
+        }
+    </style>
+</head>
+<body>
+    <nav class="nav">
+        <div class="container nav-list">
+            <a href="dashboard.html" class="nav-link">Dashboard</a>
+            <a href="calificar.html" class="nav-link active">Calificar</a>
+            <a href="#" id="btn-logout" class="nav-link" style="margin-left: auto;">Salir</a>
+        </div>
+    </nav>
+
+    <div class="container content-wrapper">
+        <h1 style="font-size: 1.5rem; margin-bottom: 20px;">Calificar Equipos</h1>
+        
+        <!-- Paso 1: Seleccionar Evento -->
+        <div class="select-container">
+            <label for="select-evento">1. Selecciona el Evento *</label>
+            <select id="select-evento" class="form-select" required>
+                <option value="">Cargando eventos...</option>
+            </select>
+        </div>
+        
+        <!-- Paso 2: Seleccionar Rúbrica -->
+        <div class="select-container">
+            <label for="select-rubrica">2. Selecciona la Rúbrica *</label>
+            <select id="select-rubrica" class="form-select" required disabled>
+                <option value="">Primero selecciona un evento</option>
+            </select>
+        </div>
+        
+        <!-- Paso 3: Seleccionar Equipo -->
+        <div class="select-container">
+            <label for="select-equipo">3. Selecciona el Equipo a Calificar *</label>
+            
+            <div class="filtro-equipo-container">
+                <input type="text" 
+                       id="filtro-equipo" 
+                       class="form-input" 
+                       placeholder="🔍 Buscar equipo por nombre..."
+                       disabled>
+            </div>
+            
+            <select id="select-equipo" class="form-select" required disabled style="display: none;">
+                <option value="">Primero selecciona una rúbrica</option>
+            </select>
+            
+            <div id="lista-equipos-filtro" class="equipos-lista" style="display: none;">
+                <!-- Se llena dinámicamente -->
+            </div>
+        </div>
+        
+        <!-- Sección de Calificación (oculta hasta seleccionar todo) -->
+        <div id="seccion-calificacion" class="seccion-calificacion hidden">
+            <div class="info-box">
+                <strong>📋 Rúbrica:</strong> <span id="nombre-rubrica-activa"></span><br>
+                <strong>🤖 Equipo:</strong> <span id="nombre-equipo-activo"></span>
+            </div>
+            
+            <div id="lista-aspectos">
+                <!-- Se llena dinámicamente con los aspectos y niveles -->
+            </div>
+            
+            <div style="margin-top: 24px;">
+                <label class="form-label">Observación General (Opcional)</label>
+                <textarea id="observacion-general" 
+                          class="form-textarea" 
+                          placeholder="Observaciones generales sobre la calificación completa..."
+                          rows="3"></textarea>
+            </div>
+        </div>
+    </div>
+    
+    <!-- Botón Guardar Fijo (solo visible cuando hay calificación) -->
+    <div id="btn-guardar-container" class="btn-guardar-fixed hidden">
+        <button id="btn-guardar-calificacion" class="btn btn-primary">
+            💾 Guardar Calificación
+        </button>
+    </div>
+
+    <script type="module">
+        import { getUser, logout } from '../js/auth.js';
+        
+        const user = getUser();
+        if (!user) {
+            window.location.href = '../index.html';
+        }
+        
+        document.getElementById('btn-logout').addEventListener('click', (e) => {
+            e.preventDefault();
+            logout();
+        });
+    </script>
+    <script type="module" src="../js/jurado/calificar.js"></script>
+</body>
+</html>

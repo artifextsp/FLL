@@ -287,7 +287,20 @@ async function guardarAspecto() {
             aspectoId = nuevoAspecto[0].id;
         }
         
-        // Crear niveles
+        // Eliminar niveles antiguos y crear nuevos
+        if (aspectoEditando) {
+            // Obtener niveles existentes
+            const nivelesAntiguos = await querySupabase('niveles_aspecto', {
+                filtros: [{ campo: 'aspecto_id', valor: aspectoId }]
+            });
+            
+            // Eliminar niveles antiguos
+            for (const nivel of nivelesAntiguos || []) {
+                await deleteSupabase('niveles_aspecto', nivel.id);
+            }
+        }
+        
+        // Crear niveles nuevos
         for (const nivel of niveles) {
             await insertSupabase('niveles_aspecto', {
                 aspecto_id: aspectoId,
