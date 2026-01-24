@@ -1,24 +1,76 @@
 import { supabase } from '../supabase.js';
 import { formatearFecha, mostrarAlerta } from '../utils.js';
-import { getUser, getLoginUrl } from '../auth.js';
 
 // Estado
 let eventos = [];
 let equipoUsuario = null;
+let equipoIdValidado = null; // ID del equipo validado con contraseña
 
-// Inicialización
+// Inicialización - SIN autenticación requerida, solo contraseña de equipo
 document.addEventListener('DOMContentLoaded', async () => {
-    const user = getUser();
-    if (!user) {
-        window.location.href = getLoginUrl();
-        return;
-    }
-    
-    // Buscar el equipo del usuario (asumiendo que el nombre del equipo coincide con algún identificador del usuario)
-    // Por ahora cargamos todos los eventos y el usuario selecciona
-    await cargarEventos();
-    configurarEventListeners();
+    configurarFormularioContrasena();
 });
+
+function configurarFormularioContrasena() {
+    const formContrasena = document.getElementById('form-contrasena');
+    const inputContrasena = document.getElementById('input-contrasena');
+    const modalContrasena = document.getElementById('modal-contrasena');
+    const contenidoPrincipal = document.getElementById('contenido-principal');
+    
+    // Solo permitir números
+    inputContrasena.addEventListener('input', (e) => {
+        e.target.value = e.target.value.replace(/[^0-9]/g, '');
+    });
+    
+    formContrasena.addEventListener('submit', async (e) => {
+        e.preventDefault();
+        
+        const contrasena = inputContrasena.value.trim();
+        
+        if (contrasena.length !== 4) {
+            mostrarAlerta('La contraseña debe tener 4 dígitos', 'warning');
+            return;
+        }
+        
+        // Buscar equipo con esta contraseña
+        try {
+            const { data: equipos, error } = await supabase
+                .from('equipos')
+                .select('*')
+                .eq('contrasena', contrasena)
+                .eq('activo', true)
+                .limit(1);
+            
+            if (error) throw error;
+            
+            if (!equipos || equipos.length === 0) {
+                mostrarAlerta('❌ Contraseña incorrecta. Verifica e intenta de nuevo.', 'error');
+                inputContrasena.value = '';
+                inputContrasena.focus();
+                return;
+            }
+            
+            // Contraseña válida
+            equipoIdValidado = equipos[0].id;
+            equipoUsuario = equipos[0];
+            
+            // Ocultar modal y mostrar contenido
+            modalContrasena.style.display = 'none';
+            contenidoPrincipal.style.display = 'block';
+            
+            // Cargar eventos y datos
+            await cargarEventos();
+            configurarEventListeners();
+            
+        } catch (error) {
+            console.error('Error validando contraseña:', error);
+            mostrarAlerta('Error al validar la contraseña', 'error');
+        }
+    });
+    
+    // Focus en el input al cargar
+    inputContrasena.focus();
+}
 
 function configurarEventListeners() {
     // Los eventos se cargan como cards clickeables
@@ -78,16 +130,10 @@ function renderizarEventos() {
 }
 
 async function cargarCalificacionesEquipo(eventoId) {
-    if (!eventoId) return;
+    if (!eventoId || !equipoIdValidado) return;
     
     try {
         mostrarCargando();
-        
-        const user = getUser();
-        
-        // Primero necesitamos identificar el equipo del usuario
-        // Por ahora, vamos a mostrar un selector de equipos o buscar por nombre de usuario
-        // Asumiendo que el usuario puede ver calificaciones de cualquier equipo del evento
         
         // Cargar equipos del evento
         const { data: equipos, error: errEquipos } = await supabase
@@ -99,14 +145,16 @@ async function cargarCalificacionesEquipo(eventoId) {
             
         if (errEquipos) throw errEquipos;
         
-        if (equipos.length === 0) {
-            mostrarAlerta('No hay equipos en este evento', 'warning');
+        // Filtrar solo el equipo validado
+        const equipoDelEvento = equipos.find(e => e.id === equipoIdValidado);
+        
+        if (!equipoDelEvento) {
+            mostrarAlerta('Tu equipo no está registrado en este evento', 'warning');
             return;
         }
         
-        // Por ahora, mostrar calificaciones de todos los equipos
-        // En producción, aquí se filtraría por el equipo del usuario logueado
-        await mostrarCalificacionesPorEquipo(equipos, eventoId);
+        // Mostrar calificaciones solo del equipo validado
+        await mostrarCalificacionesPorEquipo([equipoDelEvento], eventoId);
         
     } catch (error) {
         console.error('Error cargando calificaciones:', error);

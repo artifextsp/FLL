@@ -43,6 +43,9 @@
                 <button id="btn-eliminar-calificaciones" class="btn" style="background: var(--danger, #f44336); color: white;">
                     🗑️ Eliminar Todas las Calificaciones
                 </button>
+                <button id="btn-descargar-pdf" class="btn btn-primary">
+                    📄 Descargar Reporte PDF Completo
+                </button>
                 <a href="../equipo/resultados.html" class="btn btn-primary" style="text-decoration: none; display: inline-block;">
                     📊 Ver Resultados Generales
                 </a>
@@ -58,6 +61,7 @@
         import { requireRole, logout } from '../js/auth.js';
         import { supabase } from '../js/supabase.js';
         import { mostrarAlerta, confirmarAccion } from '../js/utils.js';
+        import { generarPDFResultados } from '../js/admin/generar-pdf.js';
         
         // Verificar autenticación y rol de forma síncrona y directa
         const user = requireRole('admin');
@@ -113,6 +117,25 @@
                     } finally {
                         btnEliminarCalificaciones.disabled = false;
                         btnEliminarCalificaciones.textContent = '🗑️ Eliminar Todas las Calificaciones';
+                    }
+                });
+            }
+            
+            // Configurar botón para descargar PDF
+            const btnDescargarPDF = document.getElementById('btn-descargar-pdf');
+            if (btnDescargarPDF) {
+                btnDescargarPDF.addEventListener('click', async () => {
+                    btnDescargarPDF.disabled = true;
+                    btnDescargarPDF.textContent = 'Generando PDF...';
+                    
+                    try {
+                        await generarPDFResultados();
+                    } catch (error) {
+                        console.error('Error generando PDF:', error);
+                        mostrarAlerta('Error al generar el PDF', 'error');
+                    } finally {
+                        btnDescargarPDF.disabled = false;
+                        btnDescargarPDF.textContent = '📄 Descargar Reporte PDF Completo';
                     }
                 });
             }

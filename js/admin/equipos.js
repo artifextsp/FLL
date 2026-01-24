@@ -131,7 +131,7 @@ function renderizarTabla() {
     if (equipos.length === 0) {
         tablaEquipos.innerHTML = `
             <tr>
-                <td colspan="4" class="text-center text-secondary py-md">
+                <td colspan="5" class="text-center text-secondary py-md">
                     No hay equipos registrados. ¡Crea el primero!
                 </td>
             </tr>
@@ -142,6 +142,7 @@ function renderizarTabla() {
     equipos.forEach(equipo => {
         const tr = document.createElement('tr');
         const nombreEvento = equipo.eventos ? equipo.eventos.nombre : 'Sin evento';
+        const contrasena = equipo.contrasena || 'Sin contraseña';
         
         tr.innerHTML = `
             <td><strong>${equipo.nombre}</strong></td>
@@ -150,6 +151,11 @@ function renderizarTabla() {
                 <span class="badge ${equipo.activo ? 'badge-success' : 'badge-danger'}">
                     ${equipo.activo ? 'Activo' : 'Inactivo'}
                 </span>
+            </td>
+            <td>
+                <code style="background: #f5f5f5; padding: 4px 8px; border-radius: 4px; font-weight: bold; color: var(--primary-color);">
+                    ${contrasena}
+                </code>
             </td>
             <td class="text-right">
                 <button class="btn-icon btn-edit" data-id="${equipo.id}" title="Editar">✏️</button>
@@ -169,6 +175,13 @@ function renderizarTabla() {
 }
 
 /**
+ * Generar contraseña de 4 dígitos aleatoria
+ */
+function generarContrasena() {
+    return Math.floor(1000 + Math.random() * 9000).toString();
+}
+
+/**
  * Guardar equipo (Crear o Actualizar)
  */
 async function guardarEquipo() {
@@ -185,6 +198,11 @@ async function guardarEquipo() {
         evento_id: eventoId
     };
     
+    // Si es un equipo nuevo, generar contraseña automáticamente
+    if (!equipoEditandoId) {
+        datos.contrasena = generarContrasena();
+    }
+    
     const btnSubmit = formEquipo.querySelector('button[type="submit"]');
     btnSubmit.disabled = true;
     btnSubmit.textContent = 'Guardando...';
@@ -196,8 +214,8 @@ async function guardarEquipo() {
             mostrarAlerta('Equipo actualizado correctamente', 'success');
         } else {
             // Crear
-            await insertSupabase('equipos', datos);
-            mostrarAlerta('Equipo creado correctamente', 'success');
+            const { data } = await insertSupabase('equipos', datos);
+            mostrarAlerta(`✅ Equipo creado correctamente\n\n🔑 Contraseña: ${datos.contrasena}\n\n⚠️ Guarda esta contraseña para que el equipo pueda acceder a sus calificaciones.`, 'success', 8000);
         }
         
         cerrarModal();
@@ -221,6 +239,14 @@ function cargarEquipoParaEditar(equipo) {
     
     document.getElementById('nombre').value = equipo.nombre;
     document.getElementById('evento_id').value = equipo.evento_id;
+    
+    // Mostrar contraseña actual si existe
+    const contrasenaContainer = document.getElementById('contrasena-display-container');
+    const contrasenaField = document.getElementById('contrasena-display');
+    if (contrasenaContainer && contrasenaField) {
+        contrasenaContainer.style.display = 'block';
+        contrasenaField.textContent = equipo.contrasena || 'Sin contraseña';
+    }
     
     modalEquipo.classList.remove('hidden');
 }
@@ -249,6 +275,12 @@ function abrirModal() {
     tituloModal.textContent = 'Nuevo Equipo';
     formEquipo.reset();
     
+    // Ocultar campo de contraseña al crear nuevo equipo
+    const contrasenaContainer = document.getElementById('contrasena-display-container');
+    if (contrasenaContainer) {
+        contrasenaContainer.style.display = 'none';
+    }
+    
     // Si hay un filtro activo, preseleccionar ese evento
     const filtroActivo = filtroEvento.value;
     if (filtroActivo) {
@@ -262,6 +294,12 @@ function cerrarModal() {
     modalEquipo.classList.add('hidden');
     formEquipo.reset();
     equipoEditandoId = null;
+    
+    // Ocultar campo de contraseña
+    const contrasenaContainer = document.getElementById('contrasena-display-container');
+    if (contrasenaContainer) {
+        contrasenaContainer.style.display = 'none';
+    }
 }
 
 function mostrarCargando() {
