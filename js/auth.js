@@ -110,21 +110,33 @@ export async function tieneMultiplesRoles(user) {
 export async function redirigirPorTipoUsuario() {
   const user = getUser();
   if (!user) {
+    console.error('❌ redirigirPorTipoUsuario: No hay usuario');
     window.location.href = getLoginUrl();
     return;
   }
+  
+  console.log('🔍 redirigirPorTipoUsuario - Usuario:', user);
+  console.log('🔍 redirigirPorTipoUsuario - tipo_usuario:', user.tipo_usuario);
+  console.log('🔍 redirigirPorTipoUsuario - rol_activo:', user.rol_activo);
+  
   if (user.primera_vez) {
+    console.log('⚠️ Primera vez, redirigiendo a cambiar_password');
     window.location.href = (getBasePath() || '') + '/cambiar_password.html';
     return;
   }
+  
   const multiplesRoles = await tieneMultiplesRoles(user);
   if (multiplesRoles && !user.rol_activo) {
+    console.log('⚠️ Múltiples roles, redirigiendo a seleccionar_rol');
     window.location.href = (getBasePath() || '') + '/seleccionar_rol.html';
     return;
   }
+  
   const tipoActivo = user.rol_activo || user.tipo_usuario;
+  console.log('🔍 Tipo activo:', tipoActivo);
 
   if ((tipoActivo === 'admin' || tipoActivo === 'super_admin') && user.tipo_usuario === 'admin' && !user.colegio_id) {
+    console.error('❌ Admin sin colegio_id');
     mostrarAlerta('Tu cuenta no tiene colegio asignado. Contacta al administrador.', 'error');
     setTimeout(logout, 2000);
     return;
@@ -132,21 +144,30 @@ export async function redirigirPorTipoUsuario() {
 
   const base = getBasePath();
   const b = base ? base + '/' : '';
+  console.log('🔍 Base path:', base, '→ URL base:', b);
+  
+  let destino = '';
   switch (tipoActivo) {
     case 'estudiante':
-      window.location.href = b + 'equipo/dashboard.html';
+      destino = b + 'equipo/dashboard.html';
       break;
     case 'docente':
     case 'jurado':
-      window.location.href = b + 'jurado/dashboard.html';
+      destino = b + 'jurado/dashboard.html';
+      console.log('✅ Redirigiendo JURADO a:', destino);
       break;
     case 'admin':
     case 'super_admin':
-      window.location.href = b + 'admin/dashboard.html';
+      destino = b + 'admin/dashboard.html';
+      console.log('✅ Redirigiendo ADMIN a:', destino);
       break;
     default:
-      window.location.href = getLoginUrl();
+      console.error('❌ Tipo no reconocido:', tipoActivo);
+      destino = getLoginUrl();
   }
+  
+  console.log('🚀 Redirigiendo a:', destino);
+  window.location.href = destino;
 }
 
 /**

@@ -63,8 +63,15 @@
             // Roles fijos: admin solo 94300774 o "admin" exacto. Resto = jurado (o estudiante si "equipo")
             let rol = 'jurado';
             const u = username.toLowerCase();
-            if (username === '94300774' || u === 'admin') rol = 'admin';
-            else if (u === 'equipo' || u === 'estudiante') rol = 'estudiante';
+            if (username === '94300774' || u === 'admin') {
+                rol = 'admin';
+                console.log('🔐 Login: Detectado como ADMIN');
+            } else if (u === 'equipo' || u === 'estudiante') {
+                rol = 'estudiante';
+                console.log('🔐 Login: Detectado como ESTUDIANTE');
+            } else {
+                console.log('🔐 Login: Detectado como JURADO (username:', username, ')');
+            }
             
             const fakeUser = {
                 id: username,
@@ -75,13 +82,16 @@
                 colegio_id: rol === 'admin' ? 1 : undefined
             };
             
+            console.log('👤 Usuario creado:', fakeUser);
+            
             try {
                 if (!setUser(fakeUser)) throw new Error('No se pudo guardar la sesión');
                 const v = getUser();
                 if (!v || !v.id) throw new Error('Sesión no guardada correctamente');
+                console.log('✅ Usuario guardado. Redirigiendo...');
                 await redirigirPorTipoUsuario();
             } catch (e) {
-                console.error('Login:', e);
+                console.error('❌ Error en login:', e);
                 mostrarError(e.message || 'Error al iniciar sesión');
             }
         });
