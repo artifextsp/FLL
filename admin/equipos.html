@@ -1,0 +1,154 @@
+<!DOCTYPE html>
+<html lang="es">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>FLL - Gestión de Equipos</title>
+    <link rel="stylesheet" href="../css/styles.css">
+    <style>
+        .table-responsive {
+            overflow-x: auto;
+        }
+        table {
+            width: 100%;
+            border-collapse: collapse;
+            min-width: 600px;
+        }
+        th, td {
+            padding: 12px;
+            text-align: left;
+            border-bottom: 1px solid var(--border);
+        }
+        th {
+            background-color: var(--surface);
+            font-weight: 600;
+        }
+        
+        .modal {
+            position: fixed;
+            top: 0;
+            left: 0;
+            width: 100%;
+            height: 100%;
+            background-color: rgba(0,0,0,0.5);
+            display: flex;
+            justify-content: center;
+            align-items: center;
+            z-index: 1000;
+        }
+        .modal-content {
+            background: white;
+            padding: 24px;
+            border-radius: var(--border-radius-lg);
+            width: 90%;
+            max-width: 500px;
+        }
+        
+        .filters {
+            display: flex;
+            gap: 16px;
+            margin-bottom: 16px;
+            flex-wrap: wrap;
+        }
+        
+        .badge {
+            padding: 4px 8px;
+            border-radius: 12px;
+            font-size: 0.8rem;
+            font-weight: 500;
+        }
+        .badge-success { background: #e8f5e9; color: #2e7d32; }
+        .badge-danger { background: #ffebee; color: #c62828; }
+        
+        .btn-icon {
+            background: none;
+            border: none;
+            cursor: pointer;
+            font-size: 1.2rem;
+            padding: 4px;
+        }
+    </style>
+</head>
+<body>
+    <nav class="nav">
+        <div class="container nav-list">
+            <a href="dashboard.html" class="nav-link">Dashboard</a>
+            <a href="eventos.html" class="nav-link">Eventos</a>
+            <a href="equipos.html" class="nav-link active">Equipos</a>
+            <a href="jurados.html" class="nav-link">Jurados</a>
+            <a href="rubricas.html" class="nav-link">Rúbricas</a>
+            <a href="#" id="btn-logout" class="nav-link" style="margin-left: auto;">Salir</a>
+        </div>
+    </nav>
+
+    <div class="container">
+        <div class="header-actions" style="display: flex; justify-content: space-between; align-items: center; margin-bottom: 24px;">
+            <h1>Equipos</h1>
+            <button id="btn-nuevo-equipo" class="btn btn-primary">+ Nuevo Equipo</button>
+        </div>
+
+        <div class="filters">
+            <div style="flex: 1; min-width: 200px;">
+                <select id="filtro-evento" class="form-select">
+                    <option value="">Cargando eventos...</option>
+                </select>
+            </div>
+        </div>
+
+        <div class="card table-responsive">
+            <table>
+                <thead>
+                    <tr>
+                        <th>Nombre del Equipo</th>
+                        <th>Evento</th>
+                        <th>Estado</th>
+                        <th class="text-right">Acciones</th>
+                    </tr>
+                </thead>
+                <tbody id="tabla-equipos">
+                    <!-- Se llena dinámicamente -->
+                </tbody>
+            </table>
+        </div>
+    </div>
+
+    <!-- Modal Crear/Editar -->
+    <div id="modal-equipo" class="modal hidden">
+        <div class="modal-content">
+            <h2 id="titulo-modal" class="mb-lg">Nuevo Equipo</h2>
+            
+            <form id="form-equipo">
+                <div class="form-group">
+                    <label class="form-label">Nombre del Equipo *</label>
+                    <input type="text" id="nombre" class="form-input" required placeholder="Ej: RoboTech 3000">
+                </div>
+                
+                <div class="form-group">
+                    <label class="form-label">Evento Asignado *</label>
+                    <select id="evento_id" class="form-select" required>
+                        <option value="">Cargando...</option>
+                    </select>
+                </div>
+                
+                <div class="text-right mt-lg">
+                    <button type="button" id="btn-cancelar" class="btn btn-outline" style="margin-right: 8px;">Cancelar</button>
+                    <button type="submit" class="btn btn-primary">Guardar</button>
+                </div>
+            </form>
+        </div>
+    </div>
+
+    <script type="module">
+        import { requireAuth, logout } from '../js/auth.js';
+        
+        // Verificar autenticación
+        requireAuth('admin');
+        
+        document.getElementById('btn-logout').addEventListener('click', (e) => {
+            e.preventDefault();
+            logout();
+        });
+    </script>
+    <script type="module" src="../js/admin/equipos.js"></script>
+</body>
+</html>

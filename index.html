@@ -50,15 +50,20 @@
             
             // Simular usuario según el input (para pruebas)
             let rol = 'jurado';
-            if (username.includes('admin')) rol = 'admin';
-            if (username.includes('equipo')) rol = 'estudiante'; // equipo usa rol estudiante
+            
+            // Lógica de roles para desarrollo
+            if (username.includes('admin') || username === '94300774') {
+                rol = 'admin';
+            } else if (username.includes('equipo')) {
+                rol = 'estudiante';
+            }
             
             const fakeUser = {
-                id: '123456',
+                id: username === '94300774' ? '94300774' : '123456',
                 username: username,
                 tipo_usuario: rol,
                 rol_activo: rol,
-                nombre: username,
+                nombre: username === '94300774' ? 'Hansel Peña' : username,
                 colegio_id: 1 // Necesario para admin
             };
             
