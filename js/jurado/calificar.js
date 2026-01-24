@@ -667,7 +667,11 @@ async function guardarCalificacion() {
         limpiarControlesCalificacion();
         
         // Volver a renderizar los aspectos sin las calificaciones guardadas
+        // Esto asegura que no se muestren datos del jurado anterior
         renderizarAspectos();
+        
+        // NO recargar calificaciones existentes aquí - queremos empezar limpio
+        // await cargarCalificacionesExistentes(); // COMENTADO - no recargar
         
         // Hacer scroll al primer control (primer aspecto)
         setTimeout(() => {
@@ -677,7 +681,7 @@ async function guardarCalificacion() {
                 // Enfocar el primer radio button
                 const primerRadio = primerAspecto.querySelector('input[type="radio"]');
                 if (primerRadio) {
-                    primerRadio.focus();
+                    setTimeout(() => primerRadio.focus(), 200);
                 }
             } else if (seccionCalificacion) {
                 seccionCalificacion.scrollIntoView({ behavior: 'smooth', block: 'start' });

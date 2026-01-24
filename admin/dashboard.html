@@ -35,6 +35,19 @@
                 <p class="text-secondary mt-sm">Asignar jueces</p>
             </a>
         </div>
+        
+        <div class="card mt-lg" style="border: 2px solid var(--danger, #f44336);">
+            <h3 style="color: var(--danger, #f44336); margin-bottom: 12px;">⚠️ Zona de Administración</h3>
+            <p class="text-secondary mb-md">Acciones administrativas avanzadas:</p>
+            <div style="display: flex; gap: 12px; flex-wrap: wrap;">
+                <button id="btn-eliminar-calificaciones" class="btn" style="background: var(--danger, #f44336); color: white;">
+                    🗑️ Eliminar Todas las Calificaciones
+                </button>
+                <a href="../equipo/resultados.html" class="btn btn-primary" style="text-decoration: none; display: inline-block;">
+                    📊 Ver Resultados Generales
+                </a>
+            </div>
+        </div>
     </div>
 
     <script type="module">
@@ -43,6 +56,8 @@
         // ============================================
         
         import { requireRole, logout } from '../js/auth.js';
+        import { supabase } from '../js/supabase.js';
+        import { mostrarAlerta, confirmarAccion } from '../js/utils.js';
         
         // Verificar autenticación y rol de forma síncrona y directa
         const user = requireRole('admin');
@@ -56,6 +71,51 @@
                 e.preventDefault();
                 logout();
             });
+            
+            // Configurar botón para eliminar todas las calificaciones
+            const btnEliminarCalificaciones = document.getElementById('btn-eliminar-calificaciones');
+            if (btnEliminarCalificaciones) {
+                btnEliminarCalificaciones.addEventListener('click', async () => {
+                    const confirmar = confirmarAccion(
+                        '⚠️ ADVERTENCIA: Esta acción eliminará TODAS las calificaciones de la base de datos.\n\n' +
+                        'Esta acción NO se puede deshacer.\n\n' +
+                        '¿Estás seguro de que deseas continuar?'
+                    );
+                    
+                    if (!confirmar) return;
+                    
+                    // Segunda confirmación
+                    const confirmar2 = confirmarAccion(
+                        '⚠️ ÚLTIMA CONFIRMACIÓN\n\n' +
+                        'Vas a eliminar TODAS las calificaciones permanentemente.\n\n' +
+                        '¿Estás completamente seguro?'
+                    );
+                    
+                    if (!confirmar2) return;
+                    
+                    btnEliminarCalificaciones.disabled = true;
+                    btnEliminarCalificaciones.textContent = 'Eliminando...';
+                    
+                    try {
+                        // Eliminar todas las calificaciones usando deleteHardSupabase
+                        const { error } = await supabase
+                            .from('calificaciones')
+                            .delete()
+                            .neq('id', '00000000-0000-0000-0000-000000000000'); // Condición que siempre es true para eliminar todas
+                        
+                        if (error) throw error;
+                        
+                        mostrarAlerta('✅ Todas las calificaciones han sido eliminadas correctamente', 'success', 5000);
+                        
+                    } catch (error) {
+                        console.error('Error eliminando calificaciones:', error);
+                        mostrarAlerta(`Error al eliminar calificaciones: ${error.message}`, 'error');
+                    } finally {
+                        btnEliminarCalificaciones.disabled = false;
+                        btnEliminarCalificaciones.textContent = '🗑️ Eliminar Todas las Calificaciones';
+                    }
+                });
+            }
         }
         // Si no hay usuario o no tiene el rol correcto, requireRole ya redirigió al login
     </script>
