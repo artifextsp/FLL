@@ -44,22 +44,37 @@
         // VERIFICACIÓN DE AUTENTICACIÓN SIMPLIFICADA
         // ============================================
         
-        import { requireRole, logout } from '../js/auth.js';
+        import { getUser, requireRole, logout } from '../js/auth.js';
+        
+        console.log('📄 jurado/dashboard.html - Cargando...');
+        console.log('📄 URL actual:', window.location.href);
+        
+        // Verificar usuario primero para debugging
+        const userCheck = getUser();
+        console.log('🔍 Usuario en localStorage:', userCheck);
         
         // Verificar autenticación y rol de forma síncrona y directa
         const user = requireRole('jurado');
         
         if (user) {
             // Usuario autenticado correctamente como jurado
-            console.log('✅ Dashboard jurado - Usuario autenticado:', user.id);
+            console.log('✅ Dashboard jurado - Usuario autenticado:', user.id, user.role);
             
             // Configurar botón de logout
             document.getElementById('btn-logout').addEventListener('click', (e) => {
                 e.preventDefault();
                 logout();
             });
+        } else {
+            console.error('❌ Dashboard jurado - No se pudo autenticar');
+            // requireRole ya debería haber redirigido, pero por si acaso:
+            setTimeout(() => {
+                if (window.location.pathname.includes('jurado')) {
+                    console.warn('⚠️ Aún en dashboard, forzando redirección');
+                    window.location.replace('../index.html');
+                }
+            }, 100);
         }
-        // Si no hay usuario o no tiene el rol correcto, requireRole ya redirigió al login
     </script>
 </body>
 </html>

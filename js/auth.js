@@ -157,8 +157,9 @@ export function isAuthenticated() {
 export function requireAuth() {
   const user = getUser();
   if (!user) {
+    console.error('❌ requireAuth: No hay usuario autenticado');
     const loginUrl = buildUrl('index.html');
-    window.location.href = loginUrl;
+    window.location.replace(loginUrl);
     return null;
   }
   return user;
@@ -215,6 +216,7 @@ export function getDashboardUrl(role) {
 export function redirectToDashboard() {
   const user = getUser();
   if (!user) {
+    console.error('❌ redirectToDashboard: No hay usuario');
     logout();
     return;
   }
@@ -222,8 +224,17 @@ export function redirectToDashboard() {
   const dashboardUrl = getDashboardUrl(user.role);
   console.log('🚀 Redirigiendo a:', dashboardUrl);
   
-  // Redirección simple y directa
-  window.location.href = dashboardUrl;
+  // CRÍTICO: Usar replace para forzar navegación y evitar problemas
+  // No usar href porque puede ser bloqueado o no ejecutarse
+  window.location.replace(dashboardUrl);
+  
+  // Forzar navegación inmediata - si replace no funciona, usar href como fallback
+  setTimeout(() => {
+    if (window.location.href !== dashboardUrl) {
+      console.warn('⚠️ Replace no funcionó, usando href como fallback');
+      window.location.href = dashboardUrl;
+    }
+  }, 50);
 }
 
 // ============================================
