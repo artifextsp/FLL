@@ -35,8 +35,20 @@ document.addEventListener('DOMContentLoaded', async () => {
 });
 
 function configurarEventListeners() {
+    if (!selectEvento || !selectRubrica || !btnGuardar) return;
+    
     selectEvento.addEventListener('change', async () => {
         eventoSeleccionado = selectEvento.value;
+        selectRubrica.disabled = !eventoSeleccionado;
+        selectRubrica.innerHTML = eventoSeleccionado 
+            ? '<option value="">Cargando rúbricas...</option>' 
+            : '<option value="">Primero selecciona un evento</option>';
+        if (!eventoSeleccionado) {
+            rubricasDisponibles = [];
+            equiposDisponibles = [];
+            ocultarSeccionCalificacion();
+            return;
+        }
         await cargarRubricas();
         await cargarEquipos();
         limpiarSelecciones();
@@ -47,21 +59,20 @@ function configurarEventListeners() {
         if (rubricaSeleccionada) {
             await cargarAspectos();
             mostrarSeccionCalificacion();
-            
-            // Habilitar selector de equipo y filtro
-            selectEquipo.disabled = false;
-            filtroEquipo.disabled = false;
-            document.getElementById('lista-equipos-filtro').style.display = 'block';
-            selectEquipo.style.display = 'none';
+            if (selectEquipo) { selectEquipo.disabled = false; selectEquipo.style.display = 'none'; }
+            if (filtroEquipo) { filtroEquipo.disabled = false; }
+            const listaFiltro = document.getElementById('lista-equipos-filtro');
+            if (listaFiltro) listaFiltro.style.display = 'block';
         } else {
             ocultarSeccionCalificacion();
-            selectEquipo.disabled = true;
-            filtroEquipo.disabled = true;
-            document.getElementById('lista-equipos-filtro').style.display = 'none';
+            if (selectEquipo) { selectEquipo.disabled = true; }
+            if (filtroEquipo) filtroEquipo.disabled = true;
+            const listaFiltro = document.getElementById('lista-equipos-filtro');
+            if (listaFiltro) listaFiltro.style.display = 'none';
         }
     });
     
-    selectEquipo.addEventListener('change', () => {
+    if (selectEquipo) selectEquipo.addEventListener('change', () => {
         equipoSeleccionado = selectEquipo.value;
         if (equipoSeleccionado && rubricaSeleccionada) {
             const equipo = equiposDisponibles.find(e => e.id === equipoSeleccionado);
@@ -72,7 +83,7 @@ function configurarEventListeners() {
         }
     });
     
-    filtroEquipo.addEventListener('input', (e) => {
+    if (filtroEquipo) filtroEquipo.addEventListener('input', (e) => {
         filtrarEquipos(e.target.value);
     });
     
@@ -84,28 +95,53 @@ function configurarEventListeners() {
 async function cargarDatosIniciales() {
     const user = getUser();
     
-    // Cargar eventos donde el usuario es jurado
     try {
+        // 1. Intentar cargar eventos donde el usuario es jurado
         const { data: jurados, error: errJurados } = await supabase
             .from('jurados')
             .select('evento_id, eventos(*)')
-            .eq('usuario_id', user.id)
+            .eq('usuario_id', String(user.id))
             .eq('activo', true);
-            
-        if (errJurados) throw errJurados;
         
-        eventosDisponibles = jurados.map(j => j.eventos).filter(Boolean);
+        if (!errJurados && jurados && jurados.length > 0) {
+            // Usuario es jurado: usar solo sus eventos
+            eventosDisponibles = jurados
+                .map(j => j.eventos)
+                .filter(Boolean);
+        }
+        
+        // 2. Si no hay eventos (no es jurado o sin asignaciones): cargar TODOS los eventos
+        // Así admins pueden probar y jurados sin asignar ven la lista
+        if (eventosDisponibles.length === 0) {
+            const { data: todosEventos, error: errEventos } = await supabase
+                .from('eventos')
+                .select('*')
+                .eq('activo', true)
+                .order('fecha_inicio', { ascending: false });
+            
+            if (errEventos) throw errEventos;
+            eventosDisponibles = todosEventos || [];
+        }
+        
         llenarSelectEventos();
+        
+        if (eventosDisponibles.length === 0) {
+            mostrarAlerta('No hay eventos disponibles. Crea uno desde el panel de administración.', 'warning');
+        }
         
     } catch (error) {
         console.error('Error cargando eventos:', error);
-        mostrarAlerta('Error al cargar eventos disponibles', 'error');
+        mostrarAlerta('Error al cargar eventos. Revisa la consola.', 'error');
     }
 }
 
 function llenarSelectEventos() {
+    if (!selectEvento) return;
     selectEvento.innerHTML = '<option value="">-- Selecciona un evento --</option>';
+    selectEvento.disabled = false;
+    
     eventosDisponibles.forEach(evento => {
+        if (!evento || !evento.id) return;
         const option = document.createElement('option');
         option.value = evento.id;
         option.textContent = evento.nombre;
@@ -134,8 +170,12 @@ async function cargarRubricas() {
 }
 
 function llenarSelectRubricas() {
+    if (!selectRubrica) return;
     selectRubrica.innerHTML = '<option value="">-- Selecciona una rúbrica --</option>';
+    selectRubrica.disabled = !eventoSeleccionado;
+    
     rubricasDisponibles.forEach(rubrica => {
+        if (!rubrica || !rubrica.id) return;
         const option = document.createElement('option');
         option.value = rubrica.id;
         option.textContent = rubrica.nombre;
