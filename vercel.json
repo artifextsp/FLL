@@ -1,6 +1,22 @@
 {
   "rewrites": [
     {
+      "source": "/FLL",
+      "destination": "/FLL/index.html"
+    },
+    {
+      "source": "/FLL/",
+      "destination": "/FLL/index.html"
+    },
+    {
+      "source": "/FLL/(.*\\.html)",
+      "destination": "/FLL/$1"
+    },
+    {
+      "source": "/(.*\\.html)",
+      "destination": "/$1"
+    },
+    {
       "source": "/(.*)",
       "destination": "/index.html"
     }
