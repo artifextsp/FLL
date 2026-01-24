@@ -1,4 +1,5 @@
 import { defineConfig } from 'vite';
+import { resolve } from 'path';
 
 export default defineConfig({
   root: '.',
@@ -7,10 +8,12 @@ export default defineConfig({
     assetsDir: 'assets',
     rollupOptions: {
       input: {
-        main: './index.html',
-        adminDashboard: './admin/dashboard.html',
-        juradoDashboard: './jurado/dashboard.html',
-        equipoDashboard: './equipo/dashboard.html'
+        main: resolve(__dirname, 'index.html'),
+        adminDashboard: resolve(__dirname, 'admin/dashboard.html'),
+        adminEventos: resolve(__dirname, 'admin/eventos.html'),
+        adminEquipos: resolve(__dirname, 'admin/equipos.html'),
+        juradoDashboard: resolve(__dirname, 'jurado/dashboard.html'),
+        equipoDashboard: resolve(__dirname, 'equipo/dashboard.html')
       }
     }
   },
