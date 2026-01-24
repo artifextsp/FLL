@@ -139,8 +139,22 @@ async function cargarDatosIniciales() {
         }
         
     } catch (error) {
-        console.error('Error cargando eventos:', error);
-        mostrarAlerta('Error al cargar eventos. Revisa la consola.', 'error');
+        console.error('❌ Error cargando eventos:', error);
+        console.error('Detalles del error:', {
+            message: error.message,
+            code: error.code,
+            details: error.details,
+            hint: error.hint
+        });
+        
+        // Mostrar mensaje más específico según el tipo de error
+        if (error.code === 'PGRST301' || error.message?.includes('permission denied') || error.message?.includes('row-level security')) {
+            mostrarAlerta('Error de permisos: Las políticas RLS no están configuradas correctamente. Ejecuta el script SQL en Supabase.', 'error');
+        } else if (error.message?.includes('Invalid API key')) {
+            mostrarAlerta('Clave API inválida. Verifica la configuración de Supabase.', 'error');
+        } else {
+            mostrarAlerta(`Error al cargar eventos: ${error.message || 'Error desconocido'}. Revisa la consola.`, 'error');
+        }
     }
 }
 

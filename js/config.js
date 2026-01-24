@@ -8,7 +8,8 @@
 
 // Valores por defecto hardcodeados para GitHub Pages (BETA)
 const SUPABASE_URL_FALLBACK = 'https://tvqugpqsmulwfqwwgkgp.supabase.co';
-const SUPABASE_KEY_FALLBACK = 'eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpc3MiOiJzdXBhYmFzZSIsInJlZiI6InR2cXVncHFzbXVsd2Zxd3dna2dwIiwicm9sZSI6ImFub24iLCJpYXQiOjE3NjkyMDgyMjcsImV4cCI6MjA4NDc4NDIyN30.H3Tk5QWTsjQuS4--_AnL2PipZjvVE-XYfU5920zP1Co';
+// IMPORTANTE: Asegurar que no haya espacios al inicio o final
+const SUPABASE_KEY_FALLBACK = 'eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpc3MiOiJzdXBhYmFzZSIsInJlZiI6InR2cXVncHFzbXVsd2Zxd3dna2dwIiwicm9sZSI6ImFub24iLCJpYXQiOjE3NjkyMDgyMjcsImV4cCI6MjA4NDc4NDIyN30.H3Tk5QWTsjQuS4--_AnL2PipZjvVE-XYfU5920zP1Co'.trim();
 const API_BASE_FALLBACK = 'https://tvqugpqsmulwfqwwgkgp.supabase.co/rest/v1';
 
 // Configuración final: usar variables de entorno si están disponibles, sino usar fallback
@@ -26,7 +27,8 @@ function getEnvVar(envVar, fallback) {
 const CONFIG = {
   API_BASE: getEnvVar('VITE_API_BASE', API_BASE_FALLBACK),
   SUPABASE_URL: getEnvVar('VITE_SUPABASE_URL', SUPABASE_URL_FALLBACK),
-  SUPABASE_KEY: getEnvVar('VITE_SUPABASE_ANON_KEY', SUPABASE_KEY_FALLBACK),
+  // Asegurar trim adicional por si acaso
+  SUPABASE_KEY: (getEnvVar('VITE_SUPABASE_ANON_KEY', SUPABASE_KEY_FALLBACK) || '').trim(),
   APP_NAME: getEnvVar('VITE_APP_NAME', 'Sistema de Calificación FLL')
 };
 
