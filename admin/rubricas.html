@@ -149,14 +149,6 @@
         import { requireAuth, logout } from '../js/auth.js';
         requireAuth('admin');
         document.getElementById('btn-logout').addEventListener('click', (e) => { e.preventDefault(); logout(); });
-        document.getElementById('btn-nuevo-aspecto').addEventListener('click', () => {
-            const modalAspecto = document.getElementById('modal-aspecto');
-            const abrirModalAspecto = window.abrirModalAspecto || (() => {
-                // Fallback si la función no está disponible aún
-                alert('Por favor, primero selecciona una rúbrica y haz clic en "Gestionar Aspectos"');
-            });
-            abrirModalAspecto();
-        });
     </script>
     <script type="module" src="../js/admin/rubricas.js"></script>
 </body>

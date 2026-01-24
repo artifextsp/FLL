@@ -34,6 +34,7 @@ function configurarEventListeners() {
     formRubrica.addEventListener('submit', async (e) => { e.preventDefault(); await guardarRubrica(); });
     filtroEvento.addEventListener('change', () => cargarRubricas());
     document.getElementById('btn-cerrar-aspectos').addEventListener('click', () => cerrarSeccionAspectos());
+    document.getElementById('btn-nuevo-aspecto').addEventListener('click', () => abrirModalAspecto());
     document.getElementById('btn-cancelar-aspecto').addEventListener('click', () => cerrarModalAspecto());
     formAspecto.addEventListener('submit', async (e) => { e.preventDefault(); await guardarAspecto(); });
 }
