@@ -189,19 +189,49 @@ export function requireAuth() {
 }
 
 /**
- * Requiere un rol específico - redirige al login si no tiene el rol
+ * Requiere un rol específico - redirige a la página de login correspondiente si no tiene el rol
  */
 export function requireRole(requiredRole) {
-  const user = requireAuth();
-  if (!user) return null;
+  const user = getUser();
   
+  // Si no hay usuario, redirigir a la página de login correspondiente
+  if (!user) {
+    console.error(`❌ requireRole: No hay usuario autenticado. Requerido: ${requiredRole}`);
+    const loginUrl = getLoginUrlForRole(requiredRole);
+    window.location.replace(loginUrl);
+    return null;
+  }
+  
+  // Si el rol no coincide, redirigir a la página de login correspondiente
   if (user.role !== requiredRole.toLowerCase()) {
     console.error(`❌ Rol requerido: ${requiredRole}, rol actual: ${user.role}`);
-    logout();
+    const loginUrl = getLoginUrlForRole(requiredRole);
+    window.location.replace(loginUrl);
     return null;
   }
   
   return user;
+}
+
+/**
+ * Obtiene la URL de login según el rol requerido
+ */
+function getLoginUrlForRole(role) {
+  const roleLower = String(role).toLowerCase();
+  
+  switch (roleLower) {
+    case 'admin':
+      return buildUrl('admin/login.html');
+    
+    case 'jurado':
+      return buildUrl('jurado/login.html');
+    
+    case 'estudiante':
+      return buildUrl('equipo/mi-calificacion.html');
+    
+    default:
+      return buildUrl('index.html');
+  }
 }
 
 // ============================================
