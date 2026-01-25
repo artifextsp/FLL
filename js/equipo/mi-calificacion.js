@@ -16,6 +16,14 @@ function configurarFormularioContrasena() {
     const inputContrasena = document.getElementById('input-contrasena');
     const modalContrasena = document.getElementById('modal-contrasena');
     const contenidoPrincipal = document.getElementById('contenido-principal');
+    const btnCancelar = document.getElementById('btn-cancelar-contrasena');
+    
+    // Botón cancelar - cerrar modal y volver al inicio
+    if (btnCancelar) {
+        btnCancelar.addEventListener('click', () => {
+            window.location.href = '../index.html';
+        });
+    }
     
     // Solo permitir números
     inputContrasena.addEventListener('input', (e) => {

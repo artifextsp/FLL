@@ -15,11 +15,13 @@ export default defineConfig({
       input: {
         main: resolve(__dirname, 'index.html'),
         adminDashboard: resolve(__dirname, 'admin/dashboard.html'),
+        adminLogin: resolve(__dirname, 'admin/login.html'),
         adminEventos: resolve(__dirname, 'admin/eventos.html'),
         adminEquipos: resolve(__dirname, 'admin/equipos.html'),
         adminJurados: resolve(__dirname, 'admin/jurados.html'),
         adminRubricas: resolve(__dirname, 'admin/rubricas.html'),
         juradoDashboard: resolve(__dirname, 'jurado/dashboard.html'),
+        juradoLogin: resolve(__dirname, 'jurado/login.html'),
         juradoCalificar: resolve(__dirname, 'jurado/calificar.html'),
         equipoDashboard: resolve(__dirname, 'equipo/dashboard.html'),
         equipoResultados: resolve(__dirname, 'equipo/resultados.html'),
