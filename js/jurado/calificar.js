@@ -205,35 +205,16 @@ function configurarEventListeners() {
 }
 
 async function cargarDatosIniciales() {
-    const user = getUser();
-    
     try {
-        // 1. Intentar cargar eventos donde el usuario es jurado
-        const { data: jurados, error: errJurados } = await supabase
-            .from('jurados')
-            .select('evento_id, eventos(*)')
-            .eq('usuario_id', String(user.id))
-            .eq('activo', true);
+        // Cargar TODOS los eventos activos para que el jurado pueda elegir cualquier evento
+        const { data: todosEventos, error: errEventos } = await supabase
+            .from('eventos')
+            .select('*')
+            .eq('activo', true)
+            .order('fecha_inicio', { ascending: false });
         
-        if (!errJurados && jurados && jurados.length > 0) {
-            // Usuario es jurado: usar solo sus eventos
-            eventosDisponibles = jurados
-                .map(j => j.eventos)
-                .filter(Boolean);
-        }
-        
-        // 2. Si no hay eventos (no es jurado o sin asignaciones): cargar TODOS los eventos
-        // Así admins pueden probar y jurados sin asignar ven la lista
-        if (eventosDisponibles.length === 0) {
-            const { data: todosEventos, error: errEventos } = await supabase
-                .from('eventos')
-                .select('*')
-                .eq('activo', true)
-                .order('fecha_inicio', { ascending: false });
-            
-            if (errEventos) throw errEventos;
-            eventosDisponibles = todosEventos || [];
-        }
+        if (errEventos) throw errEventos;
+        eventosDisponibles = todosEventos || [];
         
         llenarSelectEventos();
         
